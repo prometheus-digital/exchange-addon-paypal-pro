@@ -38,7 +38,7 @@ function it_exchange_print_paypal_pro_wizard_settings( $form ) {
     $form_values = ITUtility::merge_defaults( ITForm::get_post_data(), $settings );
     $hide_if_js =  it_exchange_is_addon_enabled( 'paypal-pro' ) ? '' : 'hide-if-js';
     ?>
-    <div class="field PayPal Pro-wizard <?php echo $hide_if_js; ?>">
+    <div class="field paypal-pro-wizard <?php echo $hide_if_js; ?>">
     <?php if ( empty( $hide_if_js ) ) { ?>
         <input class="enable-paypal-pro" type="hidden" name="it-exchange-transaction-methods[]" value="paypal-pro" />
     <?php } ?>
@@ -46,7 +46,7 @@ function it_exchange_print_paypal_pro_wizard_settings( $form ) {
     </div>
     <?php
 }
-add_action( 'it_exchange_print_paypal_pro_wizard_settings', 'it_exchange_print_paypal_pro_wizard_settings' );
+add_action( 'it_exchange_print_paypal-pro_wizard_settings', 'it_exchange_print_paypal_pro_wizard_settings' );
 
 /**
  * Saves PayPal Pro settings when the Wizard is saved
