@@ -46,7 +46,7 @@ function it_exchange_paypal_pro_addon_process_transaction( $status, $transaction
 		return $status;
 
 	// Verify nonce
-	if ( ! empty( $_REQUEST['_paypal_pro_nonce'] ) && ! wp_verify_nonce( $_REQUEST['_paypal_pro_nonce'], 'paypal-pro-checkout' ) ) {
+	if ( ! empty( $_REQUEST['_paypal_pro_nonce'] ) && ! wp_verify_nonce( $_REQUEST['_paypal_pro_nonce'], 'paypal_pro-checkout' ) ) {
 		it_exchange_add_message( 'error', __( 'Transaction Failed, unable to verify security token.', 'it-l10n-exchange-addon-paypal-pro' ) );
 		return false;
 	}
@@ -58,9 +58,6 @@ function it_exchange_paypal_pro_addon_process_transaction( $status, $transaction
 
 			$general_settings = it_exchange_get_option( 'settings_general' );
 			$settings         = it_exchange_get_option( 'addon_paypal_pro' );
-
-			// Get our secret key
-			$secret_key = ( $settings['paypal-pro-test-mode'] ) ? $settings['paypal-pro-test-secret-key'] : $settings['paypal-pro-live-secret-key'];
 
 			// Set PayPal Pro customer from WP customer ID
 			$it_exchange_customer = it_exchange_get_current_customer();
@@ -81,7 +78,7 @@ function it_exchange_paypal_pro_addon_process_transaction( $status, $transaction
 			it_exchange_add_message( 'error', $e->getMessage() );
 			return false;
 		}
-		return it_exchange_add_transaction( 'paypal-pro', $charge->id, 'succeeded', $it_exchange_customer->id, $transaction_object );
+		return it_exchange_add_transaction( 'paypal_pro', $charge->id, 'succeeded', $it_exchange_customer->id, $transaction_object );
 	} else {
 		it_exchange_add_message( 'error', __( 'Unknown error. Please try again later.', 'it-l10n-exchange-addon-paypal-pro' ) );
 	}
@@ -112,22 +109,20 @@ function it_exchange_paypal_pro_addon_make_payment_button( $options ) {
     $general_settings = it_exchange_get_option( 'settings_general' );
     $paypal_pro_settings = it_exchange_get_option( 'addon_paypal_pro' );
 
-    $publishable_key = ( $paypal_pro_settings['paypal-pro-test-mode'] ) ? $paypal_pro_settings['paypal-pro-test-publishable-key'] : $paypal_pro_settings['paypal-pro-live-publishable-key'];
-
     $products = it_exchange_get_cart_data( 'products' );
 
-    $payment_form = '<form class="paypal-pro_form" action="' . esc_attr( it_exchange_get_page_url( 'transaction' ) ) . '" method="post">';
-    $payment_form .= '<input type="hidden" name="it-exchange-transaction-method" value="paypal-pro" />';
-    $payment_form .= wp_nonce_field( 'paypal-pro-checkout', '_paypal_pro_nonce', true, false );
+    $payment_form = '<form class="paypal_pro_form" action="' . esc_attr( it_exchange_get_page_url( 'transaction' ) ) . '" method="post">';
+    $payment_form .= '<input type="hidden" name="it-exchange-transaction-method" value="paypal_pro" />';
+    $payment_form .= wp_nonce_field( 'paypal_pro-checkout', '_paypal_pro_nonce', true, false );
 
     $payment_form .= '<div class="hide-if-no-js">';
-    $payment_form .= '<input type="submit" class="it-exchange-paypal-pro-payment-button" name="paypal-pro_purchase" value="' . esc_attr( $paypal_pro_settings['paypal-pro-purchase-button-label'] ) .'" />';
+    $payment_form .= '<input type="submit" class="it-exchange-paypal_pro-payment-button" name="paypal_pro_purchase" value="' . esc_attr( $paypal_pro_settings['paypal_pro_purchase_button_label'] ) .'" />';
 
     $payment_form .= '<script>' . "\n";
-    $payment_form .= '  jQuery(".it-exchange-paypal-pro-payment-button").click(function(){' . "\n";
+    $payment_form .= '  jQuery(".it-exchange-paypal_pro-payment-button").click(function(){' . "\n";
     $payment_form .= '    var token = function(res){' . "\n";
     $payment_form .= '      var $paypal_proToken = jQuery("<input type=hidden name=PayPalProToken />").val(res.id);' . "\n";
-    $payment_form .= '      jQuery("form.paypal-pro_form").append($paypal_proToken).submit();' . "\n";
+    $payment_form .= '      jQuery("form.paypal_pro_form").append($paypal_proToken).submit();' . "\n";
     $payment_form .= '      it_exchange_paypal_pro_processing_payment_popup();' . "\n";
     $payment_form .= '    };' . "\n";
     $payment_form .= '    PayPal ProCheckout.open({' . "\n";

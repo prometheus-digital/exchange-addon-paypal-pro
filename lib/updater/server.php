@@ -124,7 +124,7 @@ class Ithemes_Updater_Server {
 		$body = json_decode( $response['body'], true );
 
 		if ( ! empty( $body['error'] ) )
-			return new WP_Error( $body['error']['type'], sprintf( __( 'An error occurred when communicating with the iThemes update server: %s (%s)', 'it-l10n-exchange-addon-paypal-pro' ), $body['error']['message'], $body['error']['code'] ) );
+			return new WP_Error( $body['error']['type'], sprintf( __( 'An error occurred when communicating with the iThemes update server: %s (%s)', 'it-l10n-exchange' ), $body['error']['message'], $body['error']['code'] ) );
 
 
 		return $body;

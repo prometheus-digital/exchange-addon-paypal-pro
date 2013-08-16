@@ -220,7 +220,7 @@ class Ithemes_Updater_Init {
 		else
 			$url = admin_url( 'options-general.php' ) . "?page={$this->page_name}";
 
-		echo '<div class="updated fade"><p>' . wp_sprintf( __( 'To receive automatic updates for %l, use the <a href="%s">iThemes Licensing</a> page found in the Settings menu.', 'it-l10n-exchange-addon-paypal-pro' ), $names, $url ) . '</p></div>';
+		echo '<div class="updated fade"><p>' . wp_sprintf( __( 'To receive automatic updates for %l, use the <a href="%s">iThemes Licensing</a> page found in the Settings menu.', 'it-l10n-exchange' ), $names, $url ) . '</p></div>';
 
 
 		$this->options['packages'] = array_keys( $this->packages );
@@ -231,13 +231,13 @@ class Ithemes_Updater_Init {
 		if ( is_multisite() && ! $this->options['show_on_sites'] )
 			return;
 
-		$this->page_ref = add_options_page( __( 'iThemes Licensing', 'it-l10n-exchange-addon-paypal-pro' ), __( 'iThemes Licensing', 'it-l10n-exchange-addon-paypal-pro' ), 'manage_options', $this->page_name, array( $this, 'settings_index' ) );
+		$this->page_ref = add_options_page( __( 'iThemes Licensing', 'it-l10n-exchange' ), __( 'iThemes Licensing', 'it-l10n-exchange' ), 'manage_options', $this->page_name, array( $this, 'settings_index' ) );
 
 		add_action( "load-{$this->page_ref}", array( $this, 'load_settings_page' ) );
 	}
 
 	public function add_network_admin_pages() {
-		$this->page_ref = add_submenu_page( 'settings.php', __( 'iThemes Licensing', 'it-l10n-exchange-addon-paypal-pro' ), __( 'iThemes Licensing', 'it-l10n-exchange-addon-paypal-pro' ), 'manage_options', $this->page_name, array( $this, 'settings_index' ) );
+		$this->page_ref = add_submenu_page( 'settings.php', __( 'iThemes Licensing', 'it-l10n-exchange' ), __( 'iThemes Licensing', 'it-l10n-exchange' ), 'manage_options', $this->page_name, array( $this, 'settings_index' ) );
 
 		add_action( "load-{$this->page_ref}", array( $this, 'load_settings_page' ) );
 	}
@@ -305,7 +305,7 @@ class Ithemes_Updater_Init {
 			return;
 
 		$url = admin_url( 'options-general.php' ) . "?page={$this->page_name}";
-		$this->registration_link = sprintf( '<a href="%1$s" title="%2$s">%3$s</a>', $url, __( 'Manage iThemes product licenses to receive automatic upgrade support', 'it-l10n-exchange-addon-paypal-pro' ), __( 'License', 'it-l10n-exchange-addon-paypal-pro' ) );
+		$this->registration_link = sprintf( '<a href="%1$s" title="%2$s">%3$s</a>', $url, __( 'Manage iThemes product licenses to receive automatic upgrade support', 'it-l10n-exchange' ), __( 'License', 'it-l10n-exchange' ) );
 	}
 
 	public function filter_plugin_action_links( $actions, $plugin_file, $plugin_data, $context ) {

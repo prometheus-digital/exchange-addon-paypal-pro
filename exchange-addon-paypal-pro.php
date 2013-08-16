@@ -33,7 +33,7 @@ function it_exchange_register_paypal_pro_addon() {
 		'category'          => 'transaction-methods',
 		'settings-callback' => 'it_exchange_paypal_pro_addon_settings_callback',
 	);
-	it_exchange_register_addon( 'paypal-pro', $options );
+	it_exchange_register_addon( 'paypal_pro', $options );
 }
 add_action( 'it_exchange_register_addons', 'it_exchange_register_paypal_pro_addon' );
 

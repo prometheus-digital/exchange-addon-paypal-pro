@@ -47,7 +47,7 @@ class Ithemes_Updater_Information {
 			'download_link' => $package['package-url'],
 
 			'sections' => array(
-				'changelog'    => __( 'These details will be available soon.', 'it-l10n-exchange-addon-paypal-pro' ),
+				'changelog'    => __( 'These details will be available soon.', 'it-l10n-exchange' ),
 			),
 		);
 

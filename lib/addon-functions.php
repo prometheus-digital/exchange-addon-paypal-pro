@@ -18,7 +18,7 @@
 */
 function it_exchange_paypal_pro_plugin_row_actions( $actions, $plugin_file, $plugin_data, $context ) {
 
-    $actions['setup_addon'] = '<a href="' . get_admin_url( NULL, 'admin.php?page=it-exchange-addons&add-on-settings=paypal-pro' ) . '">' . __( 'Setup Add-on', 'it-l10n-exchange-addon-paypal-pro' ) . '</a>';
+    $actions['setup_addon'] = '<a href="' . get_admin_url( NULL, 'admin.php?page=it-exchange-addons&add-on-settings=paypal_pro' ) . '">' . __( 'Setup Add-on', 'it-l10n-exchange-addon-paypal-pro' ) . '</a>';
 
     return $actions;
 
@@ -51,7 +51,7 @@ add_action( 'wp_enqueue_scripts', 'it_exchange_paypal_pro_addon_enqueue_script' 
 */
 function it_exchange_paypal_pro_addon_get_customer_id( $customer_id ) {
     $settings = it_exchange_get_option( 'addon_paypal_pro' );
-    $mode     = ( $settings['paypal-pro-test-mode'] ) ? '_test_mode' : '_live_mode';
+    $mode     = ( $settings['paypal_pro_sandbox_mode'] ) ? '_test_mode' : '_live_mode';
 
     return get_user_meta( $customer_id, '_it_exchange_paypal_pro_id' . $mode, true );
 }
@@ -67,7 +67,7 @@ function it_exchange_paypal_pro_addon_get_customer_id( $customer_id ) {
 */
 function it_exchange_paypal_pro_addon_set_customer_id( $customer_id, $paypal_pro_id ) {
     $settings = it_exchange_get_option( 'addon_paypal_pro' );
-    $mode     = ( $settings['paypal-pro-test-mode'] ) ? '_test_mode' : '_live_mode';
+    $mode     = ( $settings['paypal_pro_sandbox_mode'] ) ? '_test_mode' : '_live_mode';
 
     return update_user_meta( $customer_id, '_it_exchange_paypal_pro_id' . $mode, $paypal_pro_id );
 }
@@ -145,7 +145,7 @@ function it_exchange_paypal_pro_addon_add_refund_to_transaction( $paypal_pro_id,
 */
 function it_exchange_paypal_pro_addon_delete_id_from_customer( $paypal_pro_id ) {
     $settings = it_exchange_get_option( 'addon_paypal_pro' );
-    $mode     = ( $settings['paypal-pro-test-mode'] ) ? '_test_mode' : '_live_mode';
+    $mode     = ( $settings['paypal_pro_sandbox_mode'] ) ? '_test_mode' : '_live_mode';
 
     $transactions = it_exchange_paypal_pro_addon_get_transaction_id( $paypal_pro_id );
     foreach( $transactions as $transaction ) { //really only one
