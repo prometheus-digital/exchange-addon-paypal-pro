@@ -19,7 +19,7 @@
  * @param string $url transaction URL
 */
 function it_exchange_refund_url_for_paypal_pro( $url ) {
-	return 'https://www.2checkout.com/va/sales/';
+	return 'https://www.paypal.com/';
 }
 add_filter( 'it_exchange_refund_url_for_paypal_pro', 'it_exchange_refund_url_for_paypal_pro' );
 
@@ -125,8 +125,7 @@ function it_exchange_paypal_pro_addon_make_payment_button( $options ) {
     $payment_form .= '      jQuery("form.paypal_pro_form").append($paypal_proToken).submit();' . "\n";
     $payment_form .= '      it_exchange_paypal_pro_processing_payment_popup();' . "\n";
     $payment_form .= '    };' . "\n";
-    $payment_form .= '    PayPal ProCheckout.open({' . "\n";
-    $payment_form .= '      key:         "' . esc_js( $publishable_key ) . '",' . "\n";
+    $payment_form .= '    PayPalProCheckout.open({' . "\n";
     $payment_form .= '      amount:      "' . esc_js( number_format( it_exchange_get_cart_total( false ), 2, '', '' ) ) . '",' . "\n";
     $payment_form .= '      currency:    "' . esc_js( $general_settings['default-currency'] ) . '",' . "\n";
     $payment_form .= '      name:        "' . empty( $general_settings['company-name'] ) ? '' : esc_js( $general_settings['company-name'] ) . '",' . "\n";
