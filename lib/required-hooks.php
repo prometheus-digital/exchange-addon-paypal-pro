@@ -42,47 +42,33 @@ add_filter( 'it_exchange_refund_url_for_paypal_pro', 'it_exchange_refund_url_for
 function it_exchange_paypal_pro_addon_process_transaction( $status, $transaction_object ) {
 
 	// If this has been modified as true already, return.
-	if ( $status )
+	if ( $status || !isset( $_REQUEST[ '_paypal_pro_nonce' ] ) ) {
 		return $status;
+	}
 
 	// Verify nonce
-	if ( ! empty( $_REQUEST['_paypal_pro_nonce'] ) && ! wp_verify_nonce( $_REQUEST['_paypal_pro_nonce'], 'paypal_pro-checkout' ) ) {
+	if ( empty( $_REQUEST[ '_paypal_pro_nonce' ] ) && !wp_verify_nonce( $_REQUEST[ '_paypal_pro_nonce' ], 'paypal_pro-checkout' ) ) {
 		it_exchange_add_message( 'error', __( 'Transaction Failed, unable to verify security token.', 'it-l10n-exchange-addon-paypal-pro' ) );
+
 		return false;
 	}
 
-	// Make sure we have the correct $_POST argument
-	if ( ! empty( $_POST['PayPalProToken'] ) ) {
+	$it_exchange_customer = it_exchange_get_current_customer();
 
-		try {
+	try {
+		// Set / pass additional info
+		$args = array();
 
-			$general_settings = it_exchange_get_option( 'settings_general' );
-			$settings         = it_exchange_get_option( 'addon_paypal_pro' );
-
-			// Set PayPal Pro customer from WP customer ID
-			$it_exchange_customer = it_exchange_get_current_customer();
-
-			/*if ( $paypal_pro_id = it_exchange_paypal_pro_addon_get_customer_id( $it_exchange_customer->id ) )
-			 	$it_exchange_customer = Twocheckout_Customer::retrieve( $paypal_pro_id );*/
-
-			// Now that we have a valid Customer ID, charge them!
-			$charge = array(
-				'customer'    => $it_exchange_customer->id,
-				'amount'      => number_format( $transaction_object->total, 2, '', '' ),
-				'currency'    => $general_settings['default-currency'],
-				'description' => $transaction_object->description,
-			);
-
-		}
-		catch ( Exception $e ) {
-			it_exchange_add_message( 'error', $e->getMessage() );
-			return false;
-		}
-		return it_exchange_add_transaction( 'paypal_pro', $charge->id, 'succeeded', $it_exchange_customer->id, $transaction_object );
-	} else {
-		it_exchange_add_message( 'error', __( 'Unknown error. Please try again later.', 'it-l10n-exchange-addon-paypal-pro' ) );
+		// Make payment
+		$payment = it_exchange_paypal_pro_addon_do_payment( $it_exchange_customer, $transaction_object, $args );
 	}
-	return false;
+	catch ( Exception $e ) {
+		it_exchange_add_message( 'error', $e->getMessage() );
+
+		return false;
+	}
+
+	return it_exchange_add_transaction( 'paypal_pro', $payment[ 'id' ], 'succeeded', $it_exchange_customer->id, $transaction_object );
 
 }
 add_action( 'it_exchange_do_transaction_paypal_pro', 'it_exchange_paypal_pro_addon_process_transaction', 10, 2 );
@@ -104,41 +90,26 @@ add_action( 'it_exchange_do_transaction_paypal_pro', 'it_exchange_paypal_pro_add
 function it_exchange_paypal_pro_addon_make_payment_button( $options ) {
 
     if ( 0 >= it_exchange_get_cart_total( false ) )
-        return;
+        return '';
 
     $general_settings = it_exchange_get_option( 'settings_general' );
     $paypal_pro_settings = it_exchange_get_option( 'addon_paypal_pro' );
-
-    $products = it_exchange_get_cart_data( 'products' );
 
     $payment_form = '<form class="paypal_pro_form" action="' . esc_attr( it_exchange_get_page_url( 'transaction' ) ) . '" method="post">';
     $payment_form .= '<input type="hidden" name="it-exchange-transaction-method" value="paypal_pro" />';
     $payment_form .= wp_nonce_field( 'paypal_pro-checkout', '_paypal_pro_nonce', true, false );
 
     $payment_form .= '<div class="hide-if-no-js">';
-    $payment_form .= '<input type="submit" class="it-exchange-paypal_pro-payment-button" name="paypal_pro_purchase" value="' . esc_attr( $paypal_pro_settings['paypal_pro_purchase_button_label'] ) .'" />';
 
-    $payment_form .= '<script>' . "\n";
-    $payment_form .= '  jQuery(".it-exchange-paypal_pro-payment-button").click(function(){' . "\n";
-    $payment_form .= '    var token = function(res){' . "\n";
-    $payment_form .= '      var $paypal_proToken = jQuery("<input type=hidden name=PayPalProToken />").val(res.id);' . "\n";
-    $payment_form .= '      jQuery("form.paypal_pro_form").append($paypal_proToken).submit();' . "\n";
-    $payment_form .= '      it_exchange_paypal_pro_processing_payment_popup();' . "\n";
-    $payment_form .= '    };' . "\n";
-    $payment_form .= '    PayPalProCheckout.open({' . "\n";
-    $payment_form .= '      amount:      "' . esc_js( number_format( it_exchange_get_cart_total( false ), 2, '', '' ) ) . '",' . "\n";
-    $payment_form .= '      currency:    "' . esc_js( $general_settings['default-currency'] ) . '",' . "\n";
-    $payment_form .= '      name:        "' . empty( $general_settings['company-name'] ) ? '' : esc_js( $general_settings['company-name'] ) . '",' . "\n";
-    $payment_form .= '      description: "' . esc_js( it_exchange_get_cart_description() ) . '",' . "\n";
-    $payment_form .= '      panelLabel:  "Checkout",' . "\n";
-    $payment_form .= '      token:       token' . "\n";
-    $payment_form .= '    });' . "\n";
-    $payment_form .= '    return false;' . "\n";
-    $payment_form .= '  });' . "\n";
-    $payment_form .= '</script>' . "\n";
+	$button = '<input type="submit" class="it-exchange-paypal_pro-payment-button" name="paypal_pro_purchase" value="' . esc_attr( $paypal_pro_settings['paypal_pro_purchase_button_label'] ) .'" />';
 
-    $payment_form .= '</form>';
+	// Allow for an override of button input itself
+	$button = apply_filters( 'it_exchange_get_paypal_pro_make_payment_button_input', $button, $options, $paypal_pro_settings );
+
+	$payment_form .= $button;
+
     $payment_form .= '</div>';
+    $payment_form .= '</form>';
 
     return $payment_form;
 }
@@ -193,6 +164,7 @@ add_filter( 'it_exchange_transaction_status_label_paypal_pro', 'it_exchange_payp
 */
 function it_exchange_paypal_pro_transaction_is_cleared_for_delivery( $cleared, $transaction ) {
     $valid_stati = array( 'succeeded', 'partial-refund', 'won' );
+
     return in_array( it_exchange_get_transaction_status( $transaction ), $valid_stati );
 }
 add_filter( 'it_exchange_paypal_pro_transaction_is_cleared_for_delivery', 'it_exchange_paypal_pro_transaction_is_cleared_for_delivery', 10, 2 );

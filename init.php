@@ -28,10 +28,3 @@ include( 'lib/addon-settings.php' );
  * need to do similar things. This includes enqueueing scripts, formatting data for PayPal Pro, etc.
 */
 include( 'lib/addon-functions.php' );
-
-/**
- * The following file contains the PayPal Pro PHP Rest API SDK Library
- *
- * @link https://github.com/paypal/rest-api-sdk-php
-*/
-//include( 'lib/paypal-pro.php' );

@@ -158,3 +158,170 @@ function it_exchange_paypal_pro_addon_delete_id_from_customer( $paypal_pro_id ) 
         }
     }
 }
+
+/**
+ * @param IT_Exchange_Customer $it_exchange_customer
+ * @param $transaction_object
+ * @param $args
+ *
+ * @return array
+ * @throws Exception
+ */
+function it_exchange_paypal_pro_addon_do_payment( $it_exchange_customer, $transaction_object, $args ) {
+
+	$general_settings = it_exchange_get_option( 'settings_general' );
+	$settings = it_exchange_get_option( 'addon_paypal_pro' );
+
+	$charge = array(
+		'customer' => $it_exchange_customer->id,
+		'amount' => number_format( $transaction_object->total, 2, '', '' ),
+		'currency' => $general_settings[ 'default-currency' ],
+		'description' => $transaction_object->description,
+	);
+
+	$url = 'https://api-3t.paypal.com/nvp';
+
+	if ( $settings[ 'paypal_pro_sandbox_mode' ] ) {
+		$url = 'https://api-3t.sandbox.paypal.com/nvp';
+	}
+
+	$total = number_format( it_exchange_get_cart_total( false ), 2, '.', '' );
+
+	$post_data = array(
+		// Base Cart
+		'AMT' => $total,
+		'CURRENCYCODE' => $general_settings[ 'default_currency' ],
+
+		// Credit Card information
+		'CREDITCARDTYPE' => '', // @todo
+		'ACCT' => '', // @todo
+		'EXPDATE' => '', // @todo
+		'CVV2' => '', // @todo
+
+		// Customer information
+		'EMAIL' => $it_exchange_customer->data->user_email,
+		'FIRSTNAME' => $it_exchange_customer->data->first_name,
+		'LASTNAME' => $it_exchange_customer->data->last_name,
+		'STREET' => '', // @todo
+		'CITY' => '', // @todo
+		'STATE' => '', // @todo
+		'ZIP' => '', // @todo
+		'COUNTRYCODE' => '', // @todo
+
+		// Shipping information
+		'SHIPTONAME' => $it_exchange_customer->data->first_name . ' ' . $it_exchange_customer->data->last_name,
+		'SHIPTOSTREET' => '', // @todo
+		'SHIPTOSTREET2' => '', // @todo
+		'SHIPTOCITY' => '', // @todo
+		'SHIPTOSTATE' => '', // @todo
+		'SHIPTOZIP' => '', // @todo
+		'SHIPTOCOUNTRYCODE' => '', // @todo
+
+		// Cart info (item format is 0+)
+		'L_NUMBER0' => 0,
+		'L_AMT0' => $total,
+		'L_NAME0' => it_exchange_get_cart_description(),
+		'L_QTY0' => 1,
+
+		// API settings
+		'METHOD' => 'DoDirectPayment',
+		'PAYMENTACTION' => 'Sale',
+		'USER' => $settings[ 'paypal_pro_api_username' ],
+		'PWD' => $settings[ 'paypal_pro_api_password' ],
+		'SIGNATURE' => $settings[ 'paypal_pro_api_signature' ],
+
+		// Additional info
+		'IPADDRESS' => $_SERVER[ 'REMOTE_ADDR' ],
+		'VERSION' => '59.0',
+	);
+
+	// @todo Handle multi-item carts
+	/*$products = it_exchange_get_cart_products();
+
+	$item_count = 0;
+
+	foreach ( $products as $product ) {
+		$post_data[ 'L_NUMBER' . $item_count ] = $item_count;
+		$post_data[ 'L_AMT' . $item_count ] = it_exchange_get_cart_product_base_price( $product );
+		$post_data[ 'L_NAME' . $item_count ] = it_exchange_get_cart_product_title( $product );
+		$post_data[ 'L_QTY' . $item_count ] = $product[ 'count' ];
+
+		// @todo Handle taxes?
+		// $post_data[ 'L_TAXAMT' . $item_count ] = 0;
+
+		$item_count++;
+	}*/
+
+	$args = array(
+		'method' => 'POST',
+		'body' => $post_data,
+		'user-agent' => 'iThemes Exchange',
+		'timeout' => 90,
+		'sslverify' => false
+	);
+
+	$response = wp_remote_request( $url, $args );
+
+	if ( is_wp_error( $response ) ) {
+		// @todo Show error message
+	}
+
+	$body = wp_remote_retrieve_body( $response );
+
+	if ( empty( $body ) ) {
+		// @todo Show error message
+	}
+
+	parse_str( $body, $api_response );
+
+	$status = strtolower( $api_response[ 'ACK' ] );
+
+	switch ( $status ) {
+		case 'success':
+		case 'successwithwarning':
+			// @todo Set message
+
+			break;
+
+		case 'failure':
+		default:
+			$messages = array();
+
+			$message_count = 0;
+
+			while ( isset( $api_response[ 'L_LONGMESSAGE' . $message_count ] ) ) {
+				$messages[] = $api_response[ 'L_SHORTMESSAGE' . $message_count ] . ': ' . $api_response[ 'L_LONGMESSAGE' . $message_count ] . ' (Error Code #' . $api_response[ 'L_ERRORCODE' . $message_count ] . ')';
+
+				$message_count++;
+			}
+
+			if ( empty( $messages ) ) {
+				$message_count = 0;
+
+				while ( isset( $api_response[ 'L_SHORTMESSAGE' . $message_count ] ) ) {
+					$messages[] = $api_response[ 'L_SHORTMESSAGE' . $message_count ] . ' (Error Code #' . $api_response[ 'L_ERRORCODE' . $message_count ] . ')';
+
+					$message_count++;
+				}
+			}
+
+			if ( empty( $messages ) ) {
+				$message_count = 0;
+
+				while ( isset( $api_response[ 'L_SEVERITYCODE' . $message_count ] ) ) {
+					$messages[] = $api_response[ 'L_SEVERITYCODE' . $message_count ] . ' (Error Code #' . $api_response[ 'L_ERRORCODE' . $message_count ] . ')';
+
+					$message_count++;
+				}
+			}
+
+			// @todo Set message
+			// 'Correlation ID: ' . $api_response[ 'CORRELATIONID' ]
+
+			// @todo Return errors
+
+			break;
+	}
+
+	return array( 'id' => $charge->id, 'status' => 'success' );
+}
