@@ -185,12 +185,15 @@ function it_exchange_paypal_pro_addon_do_payment( $it_exchange_customer, $transa
 		$url = 'https://api-3t.sandbox.paypal.com/nvp';
 	}
 
-	$total = number_format( it_exchange_get_cart_total( false ), 2, '.', '' );
+	$total = $transaction_object->total;
+	$discount = $transaction_object->coupons_total_discounts;
+	$total_pre_discount = $total + $discount;
+	$taxes = '0.00';
 
 	$post_data = array(
 		// Base Cart
 		'AMT' => $total,
-		'CURRENCYCODE' => $general_settings[ 'default_currency' ],
+		'CURRENCYCODE' => $transaction_object->currency,
 
 		// Credit Card information
 		'CREDITCARDTYPE' => '', // @todo
@@ -217,12 +220,6 @@ function it_exchange_paypal_pro_addon_do_payment( $it_exchange_customer, $transa
 		'SHIPTOZIP' => '', // @todo
 		'SHIPTOCOUNTRYCODE' => '', // @todo
 
-		// Cart info (item format is 0+)
-		'L_NUMBER0' => 0,
-		'L_AMT0' => $total,
-		'L_NAME0' => it_exchange_get_cart_description(),
-		'L_QTY0' => 1,
-
 		// API settings
 		'METHOD' => 'DoDirectPayment',
 		'PAYMENTACTION' => 'Sale',
@@ -235,22 +232,38 @@ function it_exchange_paypal_pro_addon_do_payment( $it_exchange_customer, $transa
 		'VERSION' => '59.0',
 	);
 
-	// @todo Handle multi-item carts
-	/*$products = it_exchange_get_cart_products();
+	$item_count = 0;
+
+	// Basic cart (one line item for all products)
+	/*$post_data[ 'L_NUMBER' . $item_count ] = $item_count;
+	$post_data[ 'L_NAME' . $item_count ] = $transaction_object->description;
+	$post_data[ 'L_AMT' . $item_count ] = it_exchange_format_price( $total, false );
+	$post_data[ 'L_QTY' . $item_count ] = 1;
+
+	// @todo Handle taxes?
+	// $post_data[ 'L_TAXAMT' . $item_count ] = 0;*/
 
 	$item_count = 0;
 
-	foreach ( $products as $product ) {
+	foreach ( $transaction_object->products as $product ) {
+		$price = $product[ 'product_subtotal' ]; // base price * quantity, w/ any changes by plugins
+		$price = $price / $product[ 'count' ]; // get final base price (possibly different from $product[ 'product_base_price' ])
+
+		// Discounts
+		$price -= ( ( ( ( 100 * $price ) / $total_pre_discount ) / 100 ) * $price ); // get discounted item price
+
+		$price = it_exchange_format_price( $price, false );
+
 		$post_data[ 'L_NUMBER' . $item_count ] = $item_count;
-		$post_data[ 'L_AMT' . $item_count ] = it_exchange_get_cart_product_base_price( $product );
-		$post_data[ 'L_NAME' . $item_count ] = it_exchange_get_cart_product_title( $product );
+		$post_data[ 'L_NAME' . $item_count ] = $product[ 'product_name' ];
+		$post_data[ 'L_AMT' . $item_count ] = $price;
 		$post_data[ 'L_QTY' . $item_count ] = $product[ 'count' ];
 
 		// @todo Handle taxes?
 		// $post_data[ 'L_TAXAMT' . $item_count ] = 0;
 
 		$item_count++;
-	}*/
+	}
 
 	$args = array(
 		'method' => 'POST',
