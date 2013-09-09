@@ -37,6 +37,11 @@ function it_exchange_register_paypal_pro_addon() {
 }
 add_action( 'it_exchange_register_addons', 'it_exchange_register_paypal_pro_addon' );
 
+function it_exchange_paypal_pro_required_addons() {
+	add_filter( 'it_exchange_billing_address_purchase_requirement_enabled', '__return_true' );
+}
+add_action( 'it_exchange_enabled_addons_loaded', 'it_exchange_paypal_pro_required_addons' );
+
 /**
  * Loads the translation data for WordPress
  *

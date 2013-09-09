@@ -77,6 +77,7 @@ function it_exchange_paypal_pro_addon_default_settings( $values ) {
         'paypal_pro_api_username'                => '',
         'paypal_pro_api_password'                => '',
         'paypal_pro_api_signature'               => '',
+		'paypal_pro_sale_method'                 => 'auth_capture',
         'paypal_pro_sandbox_mode'                => false,
         'paypal_pro_purchase_button_label' => __( 'Purchase', 'it-l10n-exchange-addon-paypal-pro' ),
     );
@@ -187,9 +188,11 @@ class IT_Exchange_PayPal_Pro_Add_On {
 
         $general_settings = it_exchange_get_option( 'settings_general' );
 
-        if ( !empty( $settings ) )
-            foreach ( $settings as $key => $var )
+        if ( !empty( $settings ) ) {
+            foreach ( $settings as $key => $var ) {
                 $form->set_option( $key, $var );
+			}
+		}
 
         if ( ! empty( $_GET['page'] ) && 'it-exchange-setup' == $_GET['page'] ) : ?>
             <h3><?php _e( 'PayPal Pro', 'it-l10n-exchange-addon-paypal-pro' ); ?></h3>
@@ -213,6 +216,17 @@ class IT_Exchange_PayPal_Pro_Add_On {
             <p>
                 <label for="paypal_pro_api_signature"><?php _e( 'API Signature', 'it-l10n-exchange-addon-paypal-pro' ); ?> <span class="tip" title="<?php _e( 'The PayPal Pro API Password is found in...', 'it-l10n-exchange-addon-paypal-pro' ); ?>">i</span></label>
                 <?php $form->add_password( 'paypal_pro_api_signature' ); ?>
+            </p>
+            <p>
+                <label for="paypal_pro_sale_method"><?php _e( 'Transaction Sale Method', 'it-l10n-exchange-addon-paypal_pro' ); ?></label>
+				<?php
+					$sale_methods = array(
+						'auth_capture' => __( 'Authorize and Capture - Charge the Credit Card for the total amount', 'it-l10n-exchange-addon-paypal_pro' ),
+						'auth' => __( 'Authorize - Only authorize the Credit Card for the total amount', 'it-l10n-exchange-addon-paypal_pro' )
+					);
+
+					$form->add_drop_down( 'paypal_pro_sale_method', $sale_methods );
+				?>
             </p>
 
             <h4 class="hide-if-wizard"><?php _e( 'Optional: Enable PayPal Pro Sandbox Mode', 'it-l10n-exchange-addon-paypal-pro' ); ?></h4>
@@ -267,16 +281,15 @@ class IT_Exchange_PayPal_Pro_Add_On {
         if ( empty( $_REQUEST['it_exchange_settings-wizard-submitted'] ) )
             return;
 
-        $paypal_pro_settings = array();
+		$defaults = it_exchange_cybersource_addon_default_settings( array() );
+
+        $paypal_pro_settings = array(
+			'paypal_pro_sale_method' => $defaults[ 'paypal_pro_sale_method' ],
+			'paypal_pro_purchase_button_label' => $defaults[ 'paypal_pro_purchase_button_label' ]
+		);
 
         // Fields to save
-        $fields = array(
-            'paypal_pro_api_username',
-            'paypal_pro_api_password',
-            'paypal_pro_api_signature',
-            'paypal_pro_sandbox_mode',
-            'paypal_pro_purchase_button_label'
-        );
+        $fields = array_keys( $defaults );
 
         $default_wizard_paypal_pro_settings = apply_filters( 'default_wizard_paypal_pro_settings', $fields );
 

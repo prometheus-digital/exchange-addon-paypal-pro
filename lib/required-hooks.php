@@ -86,32 +86,14 @@ add_action( 'it_exchange_do_transaction_paypal_pro', 'it_exchange_paypal_pro_add
  *
  * @param array $options
  * @return string HTML button
-*/
+*/http://local.wordpress.dev/%3Cbr%20/%3E%3Cb%3EStrict%20Standards%3C/b%3E:%20%20Non-static%20method%20IT_Exchange_Shopping_Cart::handle_purchase_cart_request%20should%20not%20be%20called%20statically,%20assuming%20this%20from%20incompatible%20context%20in%20%3Cb%3E/srv/www/wordpress-default/wp-content/plugins/ithemes-exchange/lib/super-widget/ajax.php%3C/b%3E%20on%20line%20%3Cb%3E127%3C/b%3E%3Cbr%20/%3E0/
 function it_exchange_paypal_pro_addon_make_payment_button( $options ) {
 
     if ( 0 >= it_exchange_get_cart_total( false ) )
         return '';
 
-    $general_settings = it_exchange_get_option( 'settings_general' );
-    $paypal_pro_settings = it_exchange_get_option( 'addon_paypal_pro' );
+    return it_exchange_generate_purchase_dialog( 'paypal_pro' );
 
-    $payment_form = '<form class="paypal_pro_form" action="' . esc_attr( it_exchange_get_page_url( 'transaction' ) ) . '" method="post">';
-    $payment_form .= '<input type="hidden" name="it-exchange-transaction-method" value="paypal_pro" />';
-    $payment_form .= wp_nonce_field( 'paypal_pro-checkout', '_paypal_pro_nonce', true, false );
-
-    $payment_form .= '<div class="hide-if-no-js">';
-
-	$button = '<input type="submit" class="it-exchange-paypal_pro-payment-button" name="paypal_pro_purchase" value="' . esc_attr( $paypal_pro_settings['paypal_pro_purchase_button_label'] ) .'" />';
-
-	// Allow for an override of button input itself
-	$button = apply_filters( 'it_exchange_get_paypal_pro_make_payment_button_input', $button, $options, $paypal_pro_settings );
-
-	$payment_form .= $button;
-
-    $payment_form .= '</div>';
-    $payment_form .= '</form>';
-
-    return $payment_form;
 }
 add_filter( 'it_exchange_get_paypal_pro_make_payment_button', 'it_exchange_paypal_pro_addon_make_payment_button', 10, 2 );
 

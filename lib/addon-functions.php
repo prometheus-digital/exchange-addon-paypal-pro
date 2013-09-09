@@ -185,6 +185,12 @@ function it_exchange_paypal_pro_addon_do_payment( $it_exchange_customer, $transa
 		$url = 'https://api-3t.sandbox.paypal.com/nvp';
 	}
 
+	$paymentaction = 'Sale';
+
+	if ( 'auth' == $settings[ 'paypal_pro_sale_method' ] ) {
+		$paymentaction = 'Authorization';
+	}
+
 	$total = $transaction_object->total;
 	$discount = $transaction_object->coupons_total_discounts;
 	$total_pre_discount = $total + $discount;
@@ -222,7 +228,7 @@ function it_exchange_paypal_pro_addon_do_payment( $it_exchange_customer, $transa
 
 		// API settings
 		'METHOD' => 'DoDirectPayment',
-		'PAYMENTACTION' => 'Sale',
+		'PAYMENTACTION' => $paymentaction,
 		'USER' => $settings[ 'paypal_pro_api_username' ],
 		'PWD' => $settings[ 'paypal_pro_api_password' ],
 		'SIGNATURE' => $settings[ 'paypal_pro_api_signature' ],
@@ -242,8 +248,6 @@ function it_exchange_paypal_pro_addon_do_payment( $it_exchange_customer, $transa
 
 	// @todo Handle taxes?
 	// $post_data[ 'L_TAXAMT' . $item_count ] = 0;*/
-
-	$item_count = 0;
 
 	foreach ( $transaction_object->products as $product ) {
 		$price = $product[ 'product_subtotal' ]; // base price * quantity, w/ any changes by plugins
@@ -286,6 +290,11 @@ function it_exchange_paypal_pro_addon_do_payment( $it_exchange_customer, $transa
 	}
 
 	parse_str( $body, $api_response );
+
+	echo '<pre>';
+	var_dump( $api_response );
+	echo '</pre>';
+	die();
 
 	$status = strtolower( $api_response[ 'ACK' ] );
 
