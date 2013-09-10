@@ -42,12 +42,13 @@ add_filter( 'it_exchange_refund_url_for_paypal_pro', 'it_exchange_refund_url_for
 function it_exchange_paypal_pro_addon_process_transaction( $status, $transaction_object ) {
 
 	// If this has been modified as true already, return.
-	if ( $status || !isset( $_REQUEST[ '_paypal_pro_nonce' ] ) ) {
+	if ( $status || !isset( $_REQUEST[ 'ite-paypal_pro-purchase-dialog-nonce' ] ) ) {
+
 		return $status;
 	}
 
 	// Verify nonce
-	if ( empty( $_REQUEST[ '_paypal_pro_nonce' ] ) && !wp_verify_nonce( $_REQUEST[ '_paypal_pro_nonce' ], 'paypal_pro-checkout' ) ) {
+	if ( empty( $_REQUEST[ 'ite-paypal_pro-purchase-dialog-nonce' ] ) && !wp_verify_nonce( $_REQUEST[ 'ite-paypal_pro-purchase-dialog-nonce' ], 'paypal_pro-checkout' ) ) {
 		it_exchange_add_message( 'error', __( 'Transaction Failed, unable to verify security token.', 'it-l10n-exchange-addon-paypal-pro' ) );
 
 		return false;
@@ -71,7 +72,7 @@ function it_exchange_paypal_pro_addon_process_transaction( $status, $transaction
 	return it_exchange_add_transaction( 'paypal_pro', $payment[ 'id' ], 'succeeded', $it_exchange_customer->id, $transaction_object );
 
 }
-add_action( 'it_exchange_do_transaction_paypal_pro', 'it_exchange_paypal_pro_addon_process_transaction', 10, 2 );
+add_filter( 'it_exchange_do_transaction_paypal_pro', 'it_exchange_paypal_pro_addon_process_transaction', 10, 2 );
 
 /**
  * Returns the button for making the payment
@@ -86,7 +87,7 @@ add_action( 'it_exchange_do_transaction_paypal_pro', 'it_exchange_paypal_pro_add
  *
  * @param array $options
  * @return string HTML button
-*/http://local.wordpress.dev/%3Cbr%20/%3E%3Cb%3EStrict%20Standards%3C/b%3E:%20%20Non-static%20method%20IT_Exchange_Shopping_Cart::handle_purchase_cart_request%20should%20not%20be%20called%20statically,%20assuming%20this%20from%20incompatible%20context%20in%20%3Cb%3E/srv/www/wordpress-default/wp-content/plugins/ithemes-exchange/lib/super-widget/ajax.php%3C/b%3E%20on%20line%20%3Cb%3E127%3C/b%3E%3Cbr%20/%3E0/
+*/
 function it_exchange_paypal_pro_addon_make_payment_button( $options ) {
 
     if ( 0 >= it_exchange_get_cart_total( false ) )

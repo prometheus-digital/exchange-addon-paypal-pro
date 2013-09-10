@@ -37,6 +37,11 @@ function it_exchange_register_paypal_pro_addon() {
 }
 add_action( 'it_exchange_register_addons', 'it_exchange_register_paypal_pro_addon' );
 
+/**
+ * Require other add-ons that may be needed
+ *
+ * @since 1.0.0
+*/
 function it_exchange_paypal_pro_required_addons() {
 	add_filter( 'it_exchange_billing_address_purchase_requirement_enabled', '__return_true' );
 }

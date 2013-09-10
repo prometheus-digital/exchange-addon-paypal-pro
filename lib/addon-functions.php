@@ -192,9 +192,39 @@ function it_exchange_paypal_pro_addon_do_payment( $it_exchange_customer, $transa
 	}
 
 	$total = $transaction_object->total;
-	$discount = $transaction_object->coupons_total_discounts;
+	$discount = 0;
+
+	if ( isset( $transaction_object->coupons_total_discounts ) ) {
+		$discount = $transaction_object->coupons_total_discounts;
+	}
+
 	$total_pre_discount = $total + $discount;
 	$taxes = '0.00';
+
+	$card_type = it_exchange_paypal_pro_addon_get_card_type( $_POST[ 'it-exchange-purchase-dialog-cc-number' ] );
+
+	if ( empty( $card_type ) ) {
+		throw new Exception( 'Invalid Credit Card' );
+	}
+
+	$card_type = $card_type[ 'name' ];
+
+
+	$_POST[ 'it-exchange-purchase-dialog-cc-expiration-month' ] = (int) $_POST[ 'it-exchange-purchase-dialog-cc-expiration-month' ];
+	$_POST[ 'it-exchange-purchase-dialog-cc-expiration-year' ] = (int) $_POST[ 'it-exchange-purchase-dialog-cc-expiration-year' ];
+
+	$expiration = $_POST[ 'it-exchange-purchase-dialog-cc-expiration-month' ];
+
+	if ( $expiration < 10 ) {
+		$expiration = '0' . $expiration;
+	}
+
+	if ( $_POST[ 'it-exchange-purchase-dialog-cc-expiration-year' ] < 100 ) {
+		$expiration .= '20' . $_POST[ 'it-exchange-purchase-dialog-cc-expiration-year' ];
+	}
+	else {
+		$expiration .= $_POST[ 'it-exchange-purchase-dialog-cc-expiration-year' ];
+	}
 
 	$post_data = array(
 		// Base Cart
@@ -202,10 +232,10 @@ function it_exchange_paypal_pro_addon_do_payment( $it_exchange_customer, $transa
 		'CURRENCYCODE' => $transaction_object->currency,
 
 		// Credit Card information
-		'CREDITCARDTYPE' => '', // @todo
-		'ACCT' => '', // @todo
-		'EXPDATE' => '', // @todo
-		'CVV2' => '', // @todo
+		'CREDITCARDTYPE' => $card_type, // @todo
+		'ACCT' => $_POST[ 'it-exchange-purchase-dialog-cc-number' ], // @todo
+		'EXPDATE' => $expiration, // @todo
+		'CVV2' => $_POST[ 'it-exchange-purchase-dialog-cc-code' ], // @todo
 
 		// Customer information
 		'EMAIL' => $it_exchange_customer->data->user_email,
@@ -253,8 +283,8 @@ function it_exchange_paypal_pro_addon_do_payment( $it_exchange_customer, $transa
 		$price = $product[ 'product_subtotal' ]; // base price * quantity, w/ any changes by plugins
 		$price = $price / $product[ 'count' ]; // get final base price (possibly different from $product[ 'product_base_price' ])
 
-		// Discounts
-		$price -= ( ( ( ( 100 * $price ) / $total_pre_discount ) / 100 ) * $price ); // get discounted item price
+		// @todo handle product discounts
+		//$price -= ( ( ( ( $total * $price ) / $total_pre_discount ) / 100 ) * $price ); // get discounted item price
 
 		$price = it_exchange_format_price( $price, false );
 
@@ -290,11 +320,6 @@ function it_exchange_paypal_pro_addon_do_payment( $it_exchange_customer, $transa
 	}
 
 	parse_str( $body, $api_response );
-
-	echo '<pre>';
-	var_dump( $api_response );
-	echo '</pre>';
-	die();
 
 	$status = strtolower( $api_response[ 'ACK' ] );
 
@@ -345,5 +370,139 @@ function it_exchange_paypal_pro_addon_do_payment( $it_exchange_customer, $transa
 			break;
 	}
 
-	return array( 'id' => $charge->id, 'status' => 'success' );
+	return array( 'id' => $api_response[ 'TRANSACTIONID' ], 'status' => 'success' );
+}
+
+function it_exchange_paypal_pro_addon_get_card_types() {
+
+	$cards = array(
+
+		array(
+			'name' => 'Amex',
+			'slug' => 'amex',
+			'lengths' => '15',
+			'prefixes' => '34,37',
+			'checksum' => true
+		),
+		array(
+			'name' => 'Discover',
+			'slug' => 'discover',
+			'lengths' => '16',
+			'prefixes' => '6011,622,64,65',
+			'checksum' => true
+		),
+		array(
+			'name' => 'MasterCard',
+			'slug' => 'mastercard',
+			'lengths' => '16',
+			'prefixes' => '51,52,53,54,55',
+			'checksum' => true
+		),
+		array(
+			'name' => 'Visa',
+			'slug' => 'visa',
+			'lengths' => '13,16',
+			'prefixes' => '4,417500,4917,4913,4508,4844',
+			'checksum' => true
+		),
+		array(
+			'name' => 'JCB',
+			'slug' => 'jcb',
+			'lengths' => '16',
+			'prefixes' => '35',
+			'checksum' => true
+		),
+		array(
+			'name' => 'Maestro',
+			'slug' => 'maestro',
+			'lengths' => '12,13,14,15,16,18,19',
+			'prefixes' => '5018,5020,5038,6304,6759,6761',
+			'checksum' => true
+		)
+
+	);
+
+	return $cards;
+}
+
+function it_exchange_paypal_pro_addon_get_card_type( $number ) {
+
+	//removing spaces from number
+	$number = str_replace( ' ', '', $number );
+
+	if ( empty( $number ) ) {
+		return false;
+	}
+
+	$cards = it_exchange_paypal_pro_addon_get_card_types();
+
+	$matched_card = false;
+	foreach ( $cards as $card ) {
+		if ( it_exchange_paypal_pro_addon_matches_card_type( $number, $card ) ) {
+			$matched_card = $card;
+			break;
+		}
+	}
+
+	if ( $matched_card && $matched_card[ 'checksum' ] && !it_exchange_paypal_pro_addon_is_valid_card_checksum( $number ) ) {
+		$matched_card = false;
+	}
+
+	return $matched_card ? $matched_card : false;
+
+}
+
+function it_exchange_paypal_pro_addon_matches_card_type( $number, $card ) {
+
+	//checking prefix
+	$prefixes = explode( ',', $card[ 'prefixes' ] );
+	$matches_prefix = false;
+	foreach ( $prefixes as $prefix ) {
+		if ( preg_match( "|^{$prefix}|", $number ) ) {
+			$matches_prefix = true;
+			break;
+		}
+	}
+
+	//checking length
+	$lengths = explode( ',', $card[ 'lengths' ] );
+	$matches_length = false;
+	foreach ( $lengths as $length ) {
+		if ( strlen( $number ) == absint( $length ) ) {
+			$matches_length = true;
+			break;
+		}
+	}
+
+	return $matches_prefix && $matches_length;
+
+}
+
+function it_exchange_paypal_pro_addon_is_valid_card_checksum( $number ) {
+
+	$checksum = 0;
+	$num = 0;
+	$multiplier = 1;
+
+	// Process each character starting at the right
+	for ( $i = strlen( $number ) - 1; $i >= 0; $i-- ) {
+
+		//Multiply current digit by multiplier (1 or 2)
+		$num = $number{$i} * $multiplier;
+
+		// If the result is in greater than 9, add 1 to the checksum total
+		if ( $num >= 10 ) {
+			$checksum++;
+			$num -= 10;
+		}
+
+		//Update checksum
+		$checksum += $num;
+
+		//Update multiplier
+		$multiplier = $multiplier == 1 ? 2 : 1;
+	}
+
+	return $checksum % 10 == 0;
+
 }
