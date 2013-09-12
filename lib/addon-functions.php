@@ -226,6 +226,29 @@ function it_exchange_paypal_pro_addon_do_payment( $it_exchange_customer, $transa
 		$expiration .= $_POST[ 'it-exchange-purchase-dialog-cc-expiration-year' ];
 	}
 
+	$default_address = array(
+		'first-name'   => empty( $it_exchange_customer->data->first_name ) ? '' : $it_exchange_customer->data->first_name,
+		'last-name'    => empty( $it_exchange_customer->data->last_name ) ? '' : $it_exchange_customer->data->last_name,
+		'company-name' => '',
+		'address-1'    => '',
+		'address-2'    => '',
+		'city'         => '',
+		'state'        => '',
+		'zip'          => '',
+		'country'      => '',
+		'email'        => empty( $it_exchange_customer->data->user_email ) ? '' : $it_exchange_customer->data->user_email,
+		'phone'        => ''
+	);
+
+	$billing_address = $shipping_address = it_exchange_get_customer_billing_address( $it_exchange_customer->id );
+
+	if ( function_exists( 'it_exchange_get_customer_shipping_address' ) ) {
+		$shipping_address = it_exchange_get_customer_shipping_address( $it_exchange_customer->id );
+	}
+
+	$billing_address = array_merge( $default_address, $billing_address );
+	$shipping_address = array_merge( $default_address, $shipping_address );
+
 	$post_data = array(
 		// Base Cart
 		'AMT' => $total,
@@ -239,22 +262,23 @@ function it_exchange_paypal_pro_addon_do_payment( $it_exchange_customer, $transa
 
 		// Customer information
 		'EMAIL' => $it_exchange_customer->data->user_email,
-		'FIRSTNAME' => $it_exchange_customer->data->first_name,
-		'LASTNAME' => $it_exchange_customer->data->last_name,
-		'STREET' => '', // @todo
-		'CITY' => '', // @todo
-		'STATE' => '', // @todo
-		'ZIP' => '', // @todo
-		'COUNTRYCODE' => '', // @todo
+		'FIRSTNAME' => $billing_address[ 'first-name' ],
+		'LASTNAME' => $billing_address[ 'last-name' ],
+		'STREET' => $billing_address[ 'address-1' ],
+		'STREET2' => $billing_address[ 'address-2' ],
+		'CITY' => $billing_address[ 'city' ],
+		'STATE' => $billing_address[ 'state' ],
+		'ZIP' => $billing_address[ 'zip' ],
+		'COUNTRYCODE' => $billing_address[ 'country' ],
 
 		// Shipping information
-		'SHIPTONAME' => $it_exchange_customer->data->first_name . ' ' . $it_exchange_customer->data->last_name,
-		'SHIPTOSTREET' => '', // @todo
-		'SHIPTOSTREET2' => '', // @todo
-		'SHIPTOCITY' => '', // @todo
-		'SHIPTOSTATE' => '', // @todo
-		'SHIPTOZIP' => '', // @todo
-		'SHIPTOCOUNTRYCODE' => '', // @todo
+		'SHIPTONAME' => $shipping_address[ 'first-name' ] . ' ' . $shipping_address[ 'last-name' ],
+		'SHIPTOSTREET' => $shipping_address[ 'address-1' ],
+		'SHIPTOSTREET2' => $shipping_address[ 'address-2' ],
+		'SHIPTOCITY' => $shipping_address[ 'city' ],
+		'SHIPTOSTATE' => $shipping_address[ 'state' ],
+		'SHIPTOZIP' => $shipping_address[ 'zip' ],
+		'SHIPTOCOUNTRYCODE' => $shipping_address[ 'country' ],
 
 		// API settings
 		'METHOD' => 'DoDirectPayment',
