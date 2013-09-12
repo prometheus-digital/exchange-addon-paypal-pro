@@ -255,13 +255,13 @@ function it_exchange_paypal_pro_addon_do_payment( $it_exchange_customer, $transa
 		'CURRENCYCODE' => $transaction_object->currency,
 
 		// Credit Card information
-		'CREDITCARDTYPE' => $card_type, // @todo
-		'ACCT' => $_POST[ 'it-exchange-purchase-dialog-cc-number' ], // @todo
-		'EXPDATE' => $expiration, // @todo
-		'CVV2' => $_POST[ 'it-exchange-purchase-dialog-cc-code' ], // @todo
+		'CREDITCARDTYPE' => $card_type,
+		'ACCT' => $_POST[ 'it-exchange-purchase-dialog-cc-number' ],
+		'EXPDATE' => $expiration,
+		'CVV2' => $_POST[ 'it-exchange-purchase-dialog-cc-code' ],
 
 		// Customer information
-		'EMAIL' => $it_exchange_customer->data->user_email,
+		'EMAIL' => $billing_address[ 'email' ],
 		'FIRSTNAME' => $billing_address[ 'first-name' ],
 		'LASTNAME' => $billing_address[ 'last-name' ],
 		'STREET' => $billing_address[ 'address-1' ],
