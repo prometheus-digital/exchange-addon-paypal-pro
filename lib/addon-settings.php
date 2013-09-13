@@ -79,7 +79,7 @@ function it_exchange_paypal_pro_addon_default_settings( $values ) {
         'paypal_pro_api_signature'               => '',
 		'paypal_pro_sale_method'                 => 'auth_capture',
         'paypal_pro_sandbox_mode'                => false,
-        'paypal_pro_purchase_button_label' => __( 'Purchase', 'it-l10n-exchange-addon-paypal-pro' ),
+        'paypal_pro_purchase_button_label' => __( 'Purchase', 'LION' ),
     );
     $values = ITUtility::merge_defaults( $values, $defaults );
     return $values;
@@ -161,7 +161,7 @@ class IT_Exchange_PayPal_Pro_Add_On {
         ?>
         <div class="wrap">
             <?php screen_icon( 'it-exchange' ); ?>
-            <h2><?php _e( 'PayPal Pro Settings', 'it-l10n-exchange-addon-paypal-pro' ); ?></h2>
+            <h2><?php _e( 'PayPal Pro Settings', 'LION' ); ?></h2>
 
             <?php do_action( 'it_exchange_paypa-pro_settings_page_top' ); ?>
             <?php do_action( 'it_exchange_addon_settings_page_top' ); ?>
@@ -170,7 +170,7 @@ class IT_Exchange_PayPal_Pro_Add_On {
                 <?php $this->get_form_table( $form, $form_values ); ?>
                 <?php do_action( 'it_exchange_paypal_pro_settings_form_bottom' ); ?>
                 <p class="submit">
-                    <?php $form->add_submit( 'submit', array( 'value' => __( 'Save Changes', 'it-l10n-exchange-addon-paypal-pro' ), 'class' => 'button button-primary button-large' ) ); ?>
+                    <?php $form->add_submit( 'submit', array( 'value' => __( 'Save Changes', 'LION' ), 'class' => 'button button-primary button-large' ) ); ?>
                 </p>
             <?php $form->end_form(); ?>
             <?php do_action( 'it_exchange_paypal_pro_settings_page_bottom' ); ?>
@@ -195,26 +195,26 @@ class IT_Exchange_PayPal_Pro_Add_On {
 		}
 
         if ( ! empty( $_GET['page'] ) && 'it-exchange-setup' == $_GET['page'] ) : ?>
-            <h3><?php _e( 'PayPal Pro', 'it-l10n-exchange-addon-paypal-pro' ); ?></h3>
+            <h3><?php _e( 'PayPal Pro', 'LION' ); ?></h3>
         <?php endif; ?>
         <div class="it-exchange-addon-settings it-exchange-paypal_pro-addon-settings">
             <p>
-                <?php _e( 'To get PayPal Pro set up for use with Exchange, you\'ll need to add the following information from your PayPal Pro account.', 'it-l10n-exchange-addon-paypal-pro' ); ?>
+                <?php _e( 'To get PayPal Pro set up for use with Exchange, you\'ll need to add the following information from your PayPal Pro account.', 'LION' ); ?>
             </p>
             <p>
-                <?php _e( 'Don\'t have a PayPal Pro account yet?', 'it-l10n-exchange-addon-paypal-pro' ); ?> <a href="https://www.paypal.com/webapps/mpp/paypal-payments-pro" target="_blank"><?php _e( 'Go set one up here', 'it-l10n-exchange-addon-paypal-pro' ); ?></a>.
+                <?php _e( 'Don\'t have a PayPal Pro account yet?', 'LION' ); ?> <a href="https://www.paypal.com/webapps/mpp/paypal-payments-pro" target="_blank"><?php _e( 'Go set one up here', 'LION' ); ?></a>.
             </p>
-            <h4><?php _e( 'Fill out your PayPal Pro API Credentials', 'it-l10n-exchange-addon-paypal-pro' ); ?></h4>
+            <h4><?php _e( 'Fill out your PayPal Pro API Credentials', 'LION' ); ?></h4>
             <p>
-                <label for="paypal_pro_api_username"><?php _e( 'API Username', 'it-l10n-exchange-addon-paypal-pro' ); ?> <span class="tip" title="<?php _e( 'Your PayPal Pro Account Number, or SID, is found in the top-right corner of your 2CO account dashboard.', 'it-l10n-exchange-addon-paypal-pro' ); ?>">i</span></label>
+                <label for="paypal_pro_api_username"><?php _e( 'API Username', 'LION' ); ?> <span class="tip" title="<?php _e( 'Your PayPal Pro Account Number, or SID, is found in the top-right corner of your 2CO account dashboard.', 'LION' ); ?>">i</span></label>
                 <?php $form->add_text_box( 'paypal_pro_api_username' ); ?>
             </p>
             <p>
-                <label for="paypal_pro_api_password"><?php _e( 'API Password', 'it-l10n-exchange-addon-paypal-pro' ); ?> <span class="tip" title="<?php _e( 'The PayPal Pro API Password is found in...', 'it-l10n-exchange-addon-paypal-pro' ); ?>">i</span></label>
+                <label for="paypal_pro_api_password"><?php _e( 'API Password', 'LION' ); ?> <span class="tip" title="<?php _e( 'The PayPal Pro API Password is found in...', 'LION' ); ?>">i</span></label>
                 <?php $form->add_password( 'paypal_pro_api_password' ); ?>
             </p>
             <p>
-                <label for="paypal_pro_api_signature"><?php _e( 'API Signature', 'it-l10n-exchange-addon-paypal-pro' ); ?> <span class="tip" title="<?php _e( 'The PayPal Pro API Password is found in...', 'it-l10n-exchange-addon-paypal-pro' ); ?>">i</span></label>
+                <label for="paypal_pro_api_signature"><?php _e( 'API Signature', 'LION' ); ?> <span class="tip" title="<?php _e( 'The PayPal Pro API Password is found in...', 'LION' ); ?>">i</span></label>
                 <?php $form->add_password( 'paypal_pro_api_signature' ); ?>
             </p>
             <p>
@@ -229,15 +229,15 @@ class IT_Exchange_PayPal_Pro_Add_On {
 				?>
             </p>
 
-            <h4 class="hide-if-wizard"><?php _e( 'Optional: Enable PayPal Pro Sandbox Mode', 'it-l10n-exchange-addon-paypal-pro' ); ?></h4>
+            <h4 class="hide-if-wizard"><?php _e( 'Optional: Enable PayPal Pro Sandbox Mode', 'LION' ); ?></h4>
             <p class="hide-if-wizard">
                 <?php $form->add_check_box( 'paypal_pro_sandbox_mode', array( 'class' => 'show-test-mode-options' ) ); ?>
-                <label for="paypal_pro_sandbox_mode"><?php _e( 'Enable PayPal Pro Sandbox Mode?', 'it-l10n-exchange-addon-paypal-pro' ); ?> <span class="tip" title="<?php _e( 'Use this mode for testing your store. This mode will need to be disabled when the store is ready to process customer payments.', 'it-l10n-exchange-addon-paypal-pro' ); ?>">i</span></label>
+                <label for="paypal_pro_sandbox_mode"><?php _e( 'Enable PayPal Pro Sandbox Mode?', 'LION' ); ?> <span class="tip" title="<?php _e( 'Use this mode for testing your store. This mode will need to be disabled when the store is ready to process customer payments.', 'LION' ); ?>">i</span></label>
             </p>
 
-            <h4><?php _e( 'Optional: Edit Purchase Button Label', 'it-l10n-exchange-addon-paypal-pro' ); ?></h4>
+            <h4><?php _e( 'Optional: Edit Purchase Button Label', 'LION' ); ?></h4>
             <p>
-                <label for="paypal_pro_purchase_button_label"><?php _e( 'Purchase Button Label', 'it-l10n-exchange-addon-paypal-pro' ); ?> <span class="tip" title="<?php _e( 'This is the text inside the button your customers will press to purchase with PayPal Pro', 'it-l10n-exchange-addon-paypal-pro' ); ?>">i</span></label>
+                <label for="paypal_pro_purchase_button_label"><?php _e( 'Purchase Button Label', 'LION' ); ?> <span class="tip" title="<?php _e( 'This is the text inside the button your customers will press to purchase with PayPal Pro', 'LION' ); ?>">i</span></label>
                 <?php $form->add_text_box( 'paypal_pro_purchase_button_label' ); ?>
             </p>
         </div>
@@ -256,18 +256,18 @@ class IT_Exchange_PayPal_Pro_Add_On {
 
         // Check nonce
         if ( ! wp_verify_nonce( $_POST['_wpnonce'], 'it-exchange-paypal_pro-settings' ) ) {
-            $this->error_message = __( 'Error. Please try again', 'it-l10n-exchange-addon-paypal-pro' );
+            $this->error_message = __( 'Error. Please try again', 'LION' );
             return;
         }
 
         $errors = apply_filters( 'it_exchange_add_on_paypal_pro_validate_settings', $this->get_form_errors( $new_values ), $new_values );
         if ( ! $errors && it_exchange_save_option( 'addon_paypal_pro', $new_values ) ) {
-            ITUtility::show_status_message( __( 'Settings saved.', 'it-l10n-exchange-addon-paypal-pro' ) );
+            ITUtility::show_status_message( __( 'Settings saved.', 'LION' ) );
         } else if ( $errors ) {
             $errors = implode( '<br />', $errors );
             $this->error_message = $errors;
         } else {
-            $this->status_message = __( 'Settings not saved.', 'it-l10n-exchange-addon-paypal-pro' );
+            $this->status_message = __( 'Settings not saved.', 'LION' );
         }
     }
 
@@ -307,7 +307,7 @@ class IT_Exchange_PayPal_Pro_Add_On {
 
         } else {
             it_exchange_save_option( 'addon_paypal_pro', $settings );
-            $this->status_message = __( 'Settings Saved.', 'it-l10n-exchange-addon-paypal-pro' );
+            $this->status_message = __( 'Settings Saved.', 'LION' );
         }
 
         return;
@@ -326,13 +326,13 @@ class IT_Exchange_PayPal_Pro_Add_On {
         $errors = array();
 
 		if ( empty( $values['paypal_pro_api_username'] ) )
-            $errors[] = __( 'Please include your PayPal Pro API Username', 'it-l10n-exchange-addon-paypal-pro' );
+            $errors[] = __( 'Please include your PayPal Pro API Username', 'LION' );
 
         if ( empty( $values['paypal_pro_api_password'] ) )
-            $errors[] = __( 'Please include your PayPal Pro API Password', 'it-l10n-exchange-addon-paypal-pro' );
+            $errors[] = __( 'Please include your PayPal Pro API Password', 'LION' );
 
         if ( empty( $values['paypal_pro_api_signature'] ) )
-            $errors[] = __( 'Please include your PayPal Pro API Signature', 'it-l10n-exchange-addon-paypal-pro' );
+            $errors[] = __( 'Please include your PayPal Pro API Signature', 'LION' );
 
         return $errors;
 

@@ -23,8 +23,8 @@
 */
 function it_exchange_register_paypal_pro_addon() {
 	$options = array(
-		'name'              => __( 'PayPal Pro', 'it-l10n-exchange-addon-paypal-pro' ),
-		'description'       => __( 'Process transactions via PayPal Pro.', 'it-l10n-exchange-addon-paypal-pro' ),
+		'name'              => __( 'PayPal Pro', 'LION' ),
+		'description'       => __( 'Process transactions via PayPal Pro.', 'LION' ),
 		'author'            => 'WebDevStudios',
 		'author_url'        => 'http://webdevstudios.com',
 		'icon'              => ITUtility::get_url_from_file( dirname( __FILE__ ) . '/lib/images/paypal50px.png' ),
@@ -53,7 +53,7 @@ add_action( 'it_exchange_enabled_addons_loaded', 'it_exchange_paypal_pro_require
  * @since 1.0.0
 */
 function it_exchange_paypal_pro_set_textdomain() {
-	load_plugin_textdomain( 'it-l10n-exchange-addon-paypal-pro', false, dirname( plugin_basename( __FILE__  ) ) . '/lang/' );
+	load_plugin_textdomain( 'LION', false, dirname( plugin_basename( __FILE__  ) ) . '/lang/' );
 }
 add_action( 'plugins_loaded', 'it_exchange_paypal_pro_set_textdomain' );
 
