@@ -49,7 +49,7 @@ function it_exchange_paypal_pro_addon_process_transaction( $status, $transaction
 
 	// Verify nonce
 	if ( empty( $_REQUEST[ 'ite-paypal_pro-purchase-dialog-nonce' ] ) && !wp_verify_nonce( $_REQUEST[ 'ite-paypal_pro-purchase-dialog-nonce' ], 'paypal_pro-checkout' ) ) {
-		it_exchange_add_message( 'error', __( 'Transaction Failed, unable to verify security token.', 'it-l10n-exchange-addon-paypal-pro' ) );
+		it_exchange_add_message( 'error', __( 'Transaction Failed, unable to verify security token.', 'LION' ) );
 
 		return false;
 	}
@@ -113,19 +113,19 @@ add_filter( 'it_exchange_get_paypal_pro_make_payment_button', 'it_exchange_paypa
 function it_exchange_paypal_pro_addon_transaction_status_label( $status ) {
     switch ( $status ) {
         case 'succeeded':
-            return __( 'Paid', 'it-l10n-exchange-addon-paypal-pro' );
+            return __( 'Paid', 'LION' );
         case 'refunded':
-            return __( 'Refunded', 'it-l10n-exchange-addon-paypal-pro' );
+            return __( 'Refunded', 'LION' );
         case 'partial-refund':
-            return __( 'Partially Refunded', 'it-l10n-exchange-addon-paypal-pro' );
+            return __( 'Partially Refunded', 'LION' );
         case 'needs_response':
-            return __( 'Disputed: PayPal Pro needs a response', 'it-l10n-exchange-addon-paypal-pro' );
+            return __( 'Disputed: PayPal Pro needs a response', 'LION' );
         case 'under_review':
-            return __( 'Disputed: Under review', 'it-l10n-exchange-addon-paypal-pro' );
+            return __( 'Disputed: Under review', 'LION' );
         case 'won':
-            return __( 'Disputed: Won, Paid', 'it-l10n-exchange-addon-paypal-pro' );
+            return __( 'Disputed: Won, Paid', 'LION' );
         default:
-            return __( 'Unknown', 'it-l10n-exchange-addon-paypal-pro' );
+            return __( 'Unknown', 'LION' );
     }
 }
 add_filter( 'it_exchange_transaction_status_label_paypal_pro', 'it_exchange_paypal_pro_addon_transaction_status_label' );

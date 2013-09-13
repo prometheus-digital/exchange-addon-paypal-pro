@@ -18,28 +18,12 @@
 */
 function it_exchange_paypal_pro_plugin_row_actions( $actions, $plugin_file, $plugin_data, $context ) {
 
-    $actions['setup_addon'] = '<a href="' . get_admin_url( NULL, 'admin.php?page=it-exchange-addons&add-on-settings=paypal_pro' ) . '">' . __( 'Setup Add-on', 'it-l10n-exchange-addon-paypal-pro' ) . '</a>';
+    $actions['setup_addon'] = '<a href="' . get_admin_url( NULL, 'admin.php?page=it-exchange-addons&add-on-settings=paypal_pro' ) . '">' . __( 'Setup Add-on', 'LION' ) . '</a>';
 
     return $actions;
 
 }
 add_filter( 'plugin_action_links_exchange-addon-paypal-pro/exchange-addon-paypal-pro.php', 'it_exchange_paypal_pro_plugin_row_actions', 10, 4 );
-
-/**
- * Enqueues any scripts we need on the frontend during a PayPal Pro checkout
- *
- * @since 1.0.0
- *
- * @return void
-*/
-function it_exchange_paypal_pro_addon_enqueue_script() {
-    wp_enqueue_script( 'paypal-pro-addon-js', ITUtility::get_url_from_file( dirname( __FILE__ ) ) . '/js/paypal-pro-addon.js', array( 'jquery' ) );
-    wp_localize_script( 'paypal-pro-addon-js', 'PaypalProAddonL10n', array(
-            'processing_payment_text' => __( 'Processing payment, please wait...', 'it-l10n-exchange-addon-paypal-pro' ),
-        )
-    );
-}
-add_action( 'wp_enqueue_scripts', 'it_exchange_paypal_pro_addon_enqueue_script' );
 
 /**
  * Grab the PayPal Pro customer ID for a WP user
@@ -161,8 +145,8 @@ function it_exchange_paypal_pro_addon_delete_id_from_customer( $paypal_pro_id ) 
 
 /**
  * @param IT_Exchange_Customer $it_exchange_customer
- * @param $transaction_object
- * @param $args
+ * @param object $transaction_object
+ * @param array $args
  *
  * @return array
  * @throws Exception
@@ -230,8 +214,8 @@ function it_exchange_paypal_pro_addon_do_payment( $it_exchange_customer, $transa
 		'first-name'   => empty( $it_exchange_customer->data->first_name ) ? '' : $it_exchange_customer->data->first_name,
 		'last-name'    => empty( $it_exchange_customer->data->last_name ) ? '' : $it_exchange_customer->data->last_name,
 		'company-name' => '',
-		'address-1'    => '',
-		'address-2'    => '',
+		'address1' => '',
+		'address2' => '',
 		'city'         => '',
 		'state'        => '',
 		'zip'          => '',
@@ -397,6 +381,13 @@ function it_exchange_paypal_pro_addon_do_payment( $it_exchange_customer, $transa
 	return array( 'id' => $api_response[ 'TRANSACTIONID' ], 'status' => 'success' );
 }
 
+/**
+ * Get card types and their settings
+ *
+ * Props to Gravity Forms / Rocket Genius for the logic
+ *
+ * @return array
+ */
 function it_exchange_paypal_pro_addon_get_card_types() {
 
 	$cards = array(
@@ -449,10 +440,19 @@ function it_exchange_paypal_pro_addon_get_card_types() {
 	return $cards;
 }
 
+/**
+ * Get the Card Type from a Card Number
+ *
+ * Props to Gravity Forms / Rocket Genius for the logic
+ *
+ * @param int|string $number
+ *
+ * @return bool
+ */
 function it_exchange_paypal_pro_addon_get_card_type( $number ) {
 
 	//removing spaces from number
-	$number = str_replace( ' ', '', $number );
+	$number = str_replace( array( '-', ' ' ), '', $number );
 
 	if ( empty( $number ) ) {
 		return false;
@@ -461,9 +461,11 @@ function it_exchange_paypal_pro_addon_get_card_type( $number ) {
 	$cards = it_exchange_paypal_pro_addon_get_card_types();
 
 	$matched_card = false;
+
 	foreach ( $cards as $card ) {
 		if ( it_exchange_paypal_pro_addon_matches_card_type( $number, $card ) ) {
 			$matched_card = $card;
+
 			break;
 		}
 	}
@@ -476,6 +478,16 @@ function it_exchange_paypal_pro_addon_get_card_type( $number ) {
 
 }
 
+/**
+ * Match the Card Number to a Card Type
+ *
+ * Props to Gravity Forms / Rocket Genius for the logic
+ *
+ * @param int $number
+ * @param array $card
+ *
+ * @return bool
+ */
 function it_exchange_paypal_pro_addon_matches_card_type( $number, $card ) {
 
 	//checking prefix
@@ -502,6 +514,15 @@ function it_exchange_paypal_pro_addon_matches_card_type( $number, $card ) {
 
 }
 
+/**
+ * Check Credit Card number checksum
+ *
+ * Props to Gravity Forms / Rocket Genius for the logic
+ *
+ * @param int $number
+ *
+ * @return bool
+ */
 function it_exchange_paypal_pro_addon_is_valid_card_checksum( $number ) {
 
 	$checksum = 0;
