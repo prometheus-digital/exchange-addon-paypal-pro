@@ -86,15 +86,19 @@ function it_exchange_paypal_pro_addon_default_settings( $values ) {
 	$paypal_settings = it_exchange_get_option( 'addon_paypal_standard_secure' ); // standard-secure
 
 	if ( !empty( $paypal_settings ) ) {
-		$defaults[ 'paypal_pro_api_username' ] = $paypal_settings[ 'paypal-standard-secure-live-api-username' ];
-		$defaults[ 'paypal_pro_api_password' ] = $paypal_settings[ 'paypal-standard-secure-live-api-password' ];
-		$defaults[ 'paypal_pro_api_signature' ] = $paypal_settings[ 'paypal-standard-secure-live-api-signature' ];
-
-		if ( !empty( $paypal_settings[ 'standard-secure-sandbox-mode' ] ) ) {
+		if ( isset( $paypal_settings[ 'paypal-standard-secure-live-api-username' ] ) ) {
 			$defaults[ 'paypal_pro_api_username' ] = $paypal_settings[ 'paypal-standard-secure-live-api-username' ];
 			$defaults[ 'paypal_pro_api_password' ] = $paypal_settings[ 'paypal-standard-secure-live-api-password' ];
 			$defaults[ 'paypal_pro_api_signature' ] = $paypal_settings[ 'paypal-standard-secure-live-api-signature' ];
-			$defaults[ 'paypal_pro_sandbox_mode' ] = true;
+		}
+
+		if ( isset( $paypal_settings[ 'paypal-standard-secure-sandbox-mode' ] ) && !empty( $paypal_settings[ 'paypal-standard-secure-sandbox-mode' ] ) ) {
+			if ( isset( $paypal_settings[ 'paypal-standard-secure-sandbox-api-username' ] ) ) {
+				$defaults[ 'paypal_pro_api_username' ] = $paypal_settings[ 'paypal-standard-secure-sandbox-api-username' ];
+				$defaults[ 'paypal_pro_api_password' ] = $paypal_settings[ 'paypal-standard-secure-sandbox-api-password' ];
+				$defaults[ 'paypal_pro_api_signature' ] = $paypal_settings[ 'paypal-standard-secure-sandbox-api-signature' ];
+				$defaults[ 'paypal_pro_sandbox_mode' ] = true;
+			}
 		}
 	}
 
@@ -102,14 +106,19 @@ function it_exchange_paypal_pro_addon_default_settings( $values ) {
 		$paypal_settings = it_exchange_get_option( 'addon_paypal_standard' ); // standard
 
 		if ( !empty( $paypal_settings ) ) {
-			$defaults[ 'paypal_pro_api_username' ] = $paypal_settings[ 'paypal-standard-live-api-username' ];
-			$defaults[ 'paypal_pro_api_password' ] = $paypal_settings[ 'paypal-standard-live-api-password' ];
-			$defaults[ 'paypal_pro_api_signature' ] = $paypal_settings[ 'paypal-standard-live-api-signature' ];
-
-			if ( !empty( $paypal_settings[ 'standard-secure-sandbox-mode' ] ) ) {
+			if ( isset( $paypal_settings[ 'paypal-standard-live-api-username' ] ) ) {
 				$defaults[ 'paypal_pro_api_username' ] = $paypal_settings[ 'paypal-standard-live-api-username' ];
 				$defaults[ 'paypal_pro_api_password' ] = $paypal_settings[ 'paypal-standard-live-api-password' ];
 				$defaults[ 'paypal_pro_api_signature' ] = $paypal_settings[ 'paypal-standard-live-api-signature' ];
+			}
+
+			if ( isset( $paypal_settings[ 'paypal-standard-sandbox-mode' ] ) && !empty( $paypal_settings[ 'paypal-standard-sandbox-mode' ] ) ) {
+				if ( isset( $paypal_settings[ 'paypal-standard-sandbox-api-username' ] ) ) {
+					$defaults[ 'paypal_pro_api_username' ] = $paypal_settings[ 'paypal-standard-sandbox-api-username' ];
+					$defaults[ 'paypal_pro_api_password' ] = $paypal_settings[ 'paypal-standard-sandbox-api-password' ];
+					$defaults[ 'paypal_pro_api_signature' ] = $paypal_settings[ 'paypal-standard-sandbox-api-signature' ];
+				}
+
 				$defaults[ 'paypal_pro_sandbox_mode' ] = true;
 			}
 		}

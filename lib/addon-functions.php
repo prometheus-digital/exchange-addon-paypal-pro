@@ -158,8 +158,8 @@ function it_exchange_paypal_pro_addon_do_payment( $it_exchange_customer, $transa
 	$general_settings = it_exchange_get_option( 'settings_general' );
 	$settings = it_exchange_get_option( 'addon_paypal_pro' );
 
-	if ( !isset( $transaction_object->id ) ) {
-		$transaction_object->id = 0;
+	if ( !isset( $transaction_object->ID ) ) {
+		$transaction_object->ID = 0;
 	}
 
 	$url = 'https://api-3t.paypal.com/nvp';
@@ -275,7 +275,7 @@ function it_exchange_paypal_pro_addon_do_payment( $it_exchange_customer, $transa
 		'AMT' => $total,
 		'CURRENCYCODE' => $transaction_object->currency,
 		'DESC' => $transaction_object->description,
-		'INVNUM' => $transaction_object->id,
+		'INVNUM' => $transaction_object->ID,
 
 		// Credit Card information
 		'CREDITCARDTYPE' => $card_type,
@@ -317,6 +317,7 @@ function it_exchange_paypal_pro_addon_do_payment( $it_exchange_customer, $transa
 		'USER' => $settings[ 'paypal_pro_api_username' ],
 		'PWD' => $settings[ 'paypal_pro_api_password' ],
 		'SIGNATURE' => $settings[ 'paypal_pro_api_signature' ],
+		'NOTIFYURL' => get_site_url() . '/?' . it_exchange_get_webhook( 'paypal_pro' ) . '=1',
 
 		// Additional info
 		'IPADDRESS' => $_SERVER[ 'REMOTE_ADDR' ],
@@ -343,7 +344,7 @@ function it_exchange_paypal_pro_addon_do_payment( $it_exchange_customer, $transa
 
 		$post_data[ 'SUBSCRIBERNAME' ] = $post_data[ 'FIRSTNAME' ] . ' ' . $post_data[ 'LASTNAME' ];
 		$post_data[ 'PROFILESTARTDATE' ] = date_i18n( 'Y-m-d\Th:i:s\Z');
-		$post_data[ 'PROFILEREFERENCE' ] = $transaction_object->id;
+		$post_data[ 'PROFILEREFERENCE' ] = $transaction_object->ID;
 
 		$post_data[ 'BILLINGPERIOD' ] = $recurring_product[ 'unit' ];
 		$post_data[ 'BILLINGFREQUENCY' ] = $recurring_product[ 'duration' ];
@@ -427,7 +428,6 @@ function it_exchange_paypal_pro_addon_do_payment( $it_exchange_customer, $transa
 	switch ( $status ) {
 		case 'success':
 		case 'successwithwarning':
-			// @todo Set message
 			$status = 'success';
 
 			break;
@@ -483,14 +483,79 @@ function it_exchange_paypal_pro_addon_do_payment( $it_exchange_customer, $transa
 	elseif ( isset( $api_response[ 'PROFILEID' ] ) ) {
 		$id = $api_response[ 'PROFILEID' ];
 
-		it_exchange_paypal_pro_addon_update_subscriber_id( $transaction_object->id, $id );
-
 		if ( 'PendingProfile' == $api_response[ 'PROFILESTATUS' ] ) {
 			$status = 'pending';
 		}
+
+		// Set subscriber ID with transaction ID
+		add_filter( 'it_exchange_get_transaction_confirmation_url', 'it_exchange_paypal_pro_get_transaction_confirmation_url', 10, 2 );
 	}
 
 	return array( 'id' => $id, 'status' => $status );
+}
+
+/**
+ * Update profile status for a subscription
+ *
+ * @param string $profile_id
+ * @param string $action
+ * @param string $note
+ *
+ * @return array
+ * @throws Exception
+ */
+function it_exchange_paypal_pro_addon_update_profile_status( $profile_id, $action = 'Cancel', $note = '' ) {
+
+	$general_settings = it_exchange_get_option( 'settings_general' );
+	$settings = it_exchange_get_option( 'addon_paypal_pro' );
+
+	$url = 'https://api-3t.paypal.com/nvp';
+
+	if ( $settings[ 'paypal_pro_sandbox_mode' ] ) {
+		$url = 'https://api-3t.sandbox.paypal.com/nvp';
+	}
+
+	$method = 'ManageRecurringPaymentsProfileStatus';
+
+	$post_data = array(
+		'method' => 'ManageRecurringPaymentsProfileStatus',
+		'action' => $action,
+		'note' => $note
+	);
+
+	$post_data = apply_filters( 'it_exchange_paypal_pro_update_profile_status_post_data', $post_data, $profile_id );
+
+	ob_start();
+	var_dump( $post_data );
+	error_log( ob_get_clean() );
+
+	$args = array(
+		'method' => 'POST',
+		'body' => $post_data,
+		'user-agent' => 'iThemes Exchange',
+		'timeout' => 90,
+		'sslverify' => false
+	);
+
+	$response = wp_remote_request( $url, $args );
+
+	if ( is_wp_error( $response ) ) {
+		throw new Exception( __( 'Subscription API unavailable, please try again.', 'LION' ) );
+	}
+
+	$body = wp_remote_retrieve_body( $response );
+
+	if ( empty( $body ) ) {
+		throw new Exception( __( 'Subscription API error, please try again.', 'LION' ) );
+	}
+
+	parse_str( $body, $api_response );
+
+	ob_start();
+	var_dump( $api_response );
+	error_log( ob_get_clean() );
+
+	return true;
 }
 
 /**
