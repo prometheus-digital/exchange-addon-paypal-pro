@@ -81,7 +81,42 @@ function it_exchange_paypal_pro_addon_default_settings( $values ) {
         'paypal_pro_sandbox_mode'                => false,
         'paypal_pro_purchase_button_label' => __( 'Purchase', 'LION' ),
     );
+
+	// Detect settings
+	$paypal_settings = it_exchange_get_option( 'addon_paypal_standard_secure' ); // standard-secure
+
+	if ( !empty( $paypal_settings ) ) {
+		$defaults[ 'paypal_pro_api_username' ] = $paypal_settings[ 'paypal-standard-secure-live-api-username' ];
+		$defaults[ 'paypal_pro_api_password' ] = $paypal_settings[ 'paypal-standard-secure-live-api-password' ];
+		$defaults[ 'paypal_pro_api_signature' ] = $paypal_settings[ 'paypal-standard-secure-live-api-signature' ];
+
+		if ( !empty( $paypal_settings[ 'standard-secure-sandbox-mode' ] ) ) {
+			$defaults[ 'paypal_pro_api_username' ] = $paypal_settings[ 'paypal-standard-secure-live-api-username' ];
+			$defaults[ 'paypal_pro_api_password' ] = $paypal_settings[ 'paypal-standard-secure-live-api-password' ];
+			$defaults[ 'paypal_pro_api_signature' ] = $paypal_settings[ 'paypal-standard-secure-live-api-signature' ];
+			$defaults[ 'paypal_pro_sandbox_mode' ] = true;
+		}
+	}
+
+	if ( empty( $defaults[ 'paypal_pro_api_username' ] ) ) {
+		$paypal_settings = it_exchange_get_option( 'addon_paypal_standard' ); // standard
+
+		if ( !empty( $paypal_settings ) ) {
+			$defaults[ 'paypal_pro_api_username' ] = $paypal_settings[ 'paypal-standard-live-api-username' ];
+			$defaults[ 'paypal_pro_api_password' ] = $paypal_settings[ 'paypal-standard-live-api-password' ];
+			$defaults[ 'paypal_pro_api_signature' ] = $paypal_settings[ 'paypal-standard-live-api-signature' ];
+
+			if ( !empty( $paypal_settings[ 'standard-secure-sandbox-mode' ] ) ) {
+				$defaults[ 'paypal_pro_api_username' ] = $paypal_settings[ 'paypal-standard-live-api-username' ];
+				$defaults[ 'paypal_pro_api_password' ] = $paypal_settings[ 'paypal-standard-live-api-password' ];
+				$defaults[ 'paypal_pro_api_signature' ] = $paypal_settings[ 'paypal-standard-live-api-signature' ];
+				$defaults[ 'paypal_pro_sandbox_mode' ] = true;
+			}
+		}
+	}
+
     $values = ITUtility::merge_defaults( $values, $defaults );
+
     return $values;
 }
 add_filter( 'it_storage_get_defaults_exchange_addon_paypal_pro', 'it_exchange_paypal_pro_addon_default_settings' );
@@ -218,11 +253,11 @@ class IT_Exchange_PayPal_Pro_Add_On {
                 <?php $form->add_password( 'paypal_pro_api_signature' ); ?>
             </p>
             <p>
-                <label for="paypal_pro_sale_method"><?php _e( 'Transaction Sale Method', 'it-l10n-exchange-addon-paypal_pro' ); ?></label>
+                <label for="paypal_pro_sale_method"><?php _e( 'Transaction Sale Method', 'LION' ); ?></label>
 				<?php
 					$sale_methods = array(
-						'auth_capture' => __( 'Authorize and Capture - Charge the Credit Card for the total amount', 'it-l10n-exchange-addon-paypal_pro' ),
-						'auth' => __( 'Authorize - Only authorize the Credit Card for the total amount', 'it-l10n-exchange-addon-paypal_pro' )
+						'auth_capture' => __( 'Authorize and Capture - Charge the Credit Card for the total amount', 'LION' ),
+						'auth' => __( 'Authorize - Only authorize the Credit Card for the total amount', 'LION' )
 					);
 
 					$form->add_drop_down( 'paypal_pro_sale_method', $sale_methods );

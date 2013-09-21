@@ -28,3 +28,8 @@ include( 'lib/addon-settings.php' );
  * need to do similar things. This includes enqueueing scripts, formatting data for PayPal Pro, etc.
 */
 include( 'lib/addon-functions.php' );
+
+/**
+ * Webhooks
+*/
+include( 'lib/addon-webhooks.php' );
