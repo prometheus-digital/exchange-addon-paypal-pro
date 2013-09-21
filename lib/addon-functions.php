@@ -321,7 +321,7 @@ function it_exchange_paypal_pro_addon_do_payment( $it_exchange_customer, $transa
 
 		// Additional info
 		'IPADDRESS' => $_SERVER[ 'REMOTE_ADDR' ],
-		'VERSION' => '59.0',
+		'VERSION' => '59.0'
 	);
 
 	$item_count = 0;
@@ -515,12 +515,20 @@ function it_exchange_paypal_pro_addon_update_profile_status( $profile_id, $actio
 		$url = 'https://api-3t.sandbox.paypal.com/nvp';
 	}
 
-	$method = 'ManageRecurringPaymentsProfileStatus';
-
 	$post_data = array(
-		'method' => 'ManageRecurringPaymentsProfileStatus',
-		'action' => $action,
-		'note' => $note
+		'METHOD' => 'ManageRecurringPaymentsProfileStatus',
+		'PROFILEID' => $profile_id,
+		'ACTION' => $action,
+		'NOTE' => $note,
+
+		// API info
+		'USER' => $settings[ 'paypal_pro_api_username' ],
+		'PWD' => $settings[ 'paypal_pro_api_password' ],
+		'SIGNATURE' => $settings[ 'paypal_pro_api_signature' ],
+
+		// Additional info
+		'IPADDRESS' => $_SERVER[ 'REMOTE_ADDR' ],
+		'VERSION' => '59.0'
 	);
 
 	$post_data = apply_filters( 'it_exchange_paypal_pro_update_profile_status_post_data', $post_data, $profile_id );
@@ -554,6 +562,58 @@ function it_exchange_paypal_pro_addon_update_profile_status( $profile_id, $actio
 	ob_start();
 	var_dump( $api_response );
 	error_log( ob_get_clean() );
+
+	$status = strtolower( $api_response[ 'ACK' ] );
+
+	switch ( $status ) {
+		case 'success':
+		case 'successwithwarning':
+			// all good
+
+			break;
+
+		case 'failure':
+		default:
+			$messages = array();
+
+			$message_count = 0;
+
+			while ( isset( $api_response[ 'L_LONGMESSAGE' . $message_count ] ) ) {
+				$message = $api_response[ 'L_SHORTMESSAGE' . $message_count ] . ': ' . $api_response[ 'L_LONGMESSAGE' . $message_count ] . ' (Error Code #' . $api_response[ 'L_ERRORCODE' . $message_count ] . ')';
+
+				$messages[] = $message;
+
+				$message_count++;
+			}
+
+			if ( empty( $messages ) ) {
+				$message_count = 0;
+
+				while ( isset( $api_response[ 'L_SHORTMESSAGE' . $message_count ] ) ) {
+					$message = $api_response[ 'L_SHORTMESSAGE' . $message_count ] . ' (Error Code #' . $api_response[ 'L_ERRORCODE' . $message_count ] . ')';
+
+					$messages[] = $message;
+
+					$message_count++;
+				}
+			}
+
+			if ( empty( $messages ) ) {
+				$message_count = 0;
+
+				while ( isset( $api_response[ 'L_SEVERITYCODE' . $message_count ] ) ) {
+					$message = $api_response[ 'L_SEVERITYCODE' . $message_count ] . ' (Error Code #' . $api_response[ 'L_ERRORCODE' . $message_count ] . ')';
+
+					$messages[] = $message;
+
+					$message_count++;
+				}
+			}
+
+			throw new Exception( sprintf( __( 'Error(s) with Payment processing: %s', 'LION' ), '<ul><li>' . implode( '</li><li>', $messages ) . '</li></ul>' ) );
+
+			break;
+	}
 
 	return true;
 }
