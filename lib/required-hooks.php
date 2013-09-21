@@ -218,6 +218,12 @@ function it_exchange_paypal_pro_unsubscribe_action_submit() {
 					break;
 
 			}
+
+			if ( isset( $_GET[ 'it-exchange-paypal_pro-transaction-id' ] ) ) {
+				$transaction = it_exchange_get_transaction( get_post( $_GET[ 'it-exchange-paypal_pro-transaction-id' ] ) );
+
+				it_exchange_recurring_payments_addon_update_transaction_subscription_id( $transaction, '' );
+			}
 		}
 		catch( Exception $e ) {
 			it_exchange_add_message( 'error', $e->getMessage() );
@@ -264,7 +270,7 @@ function it_exchange_paypal_pro_after_payment_details_cancel_url( $transaction =
 
 				case 'active':
 				default:
-					$output  = '<a href="' .  add_query_arg( array( 'it-exchange-paypal_pro-nonce' => wp_create_nonce( 'paypal_pro-unsubscribe-user' ), 'it-exchange-paypal_pro-action' => 'unsubscribe-user', 'it-exchange-paypal_pro-profile-id' => $paypal_pro_profile_id ) ) . '">' . __( 'Cancel Recurring Payment', 'LION' ) . '</a>';
+					$output  = '<a href="' .  add_query_arg( array( 'it-exchange-paypal_pro-nonce' => wp_create_nonce( 'paypal_pro-unsubscribe-user' ), 'it-exchange-paypal_pro-action' => 'unsubscribe-user', 'it-exchange-paypal_pro-profile-id' => $paypal_pro_profile_id, 'it-exchange-paypal_pro-transaction-id' => $transaction->ID ) ) . '">' . __( 'Cancel Recurring Payment', 'LION' ) . '</a>';
 					break;
 			}
 			?>
