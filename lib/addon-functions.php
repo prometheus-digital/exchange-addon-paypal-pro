@@ -174,6 +174,8 @@ function it_exchange_paypal_pro_addon_do_payment( $it_exchange_customer, $transa
 		$paymentaction = 'Authorization';
 	}
 
+	// Hello future self...
+	// https://developer.paypal.com/webapps/developer/docs/classic/api/merchant/DoDirectPayment_API_Operation_NVP/
 	$method = 'DoDirectPayment';
 
 	if ( 1 === it_exchange_get_cart_products_count() ) {
@@ -206,6 +208,8 @@ function it_exchange_paypal_pro_addon_do_payment( $it_exchange_customer, $transa
 						'cycles' => apply_filters( 'it_exchange_paypal_pro_subscription_cycles', 0, $time, $product, $transaction_object, $it_exchange_customer )
 					);
 
+					// Hello future self...
+					// https://developer.paypal.com/webapps/developer/docs/classic/api/merchant/CreateRecurringPaymentsProfile_API_Operation_NVP/
 					$method = 'CreateRecurringPaymentsProfile';
 				}
 			}
@@ -506,7 +510,6 @@ function it_exchange_paypal_pro_addon_do_payment( $it_exchange_customer, $transa
  */
 function it_exchange_paypal_pro_addon_update_profile_status( $profile_id, $action = 'Cancel', $note = '' ) {
 
-	$general_settings = it_exchange_get_option( 'settings_general' );
 	$settings = it_exchange_get_option( 'addon_paypal_pro' );
 
 	$url = 'https://api-3t.paypal.com/nvp';
@@ -515,6 +518,8 @@ function it_exchange_paypal_pro_addon_update_profile_status( $profile_id, $actio
 		$url = 'https://api-3t.sandbox.paypal.com/nvp';
 	}
 
+	// Hello future self...
+	// https://developer.paypal.com/webapps/developer/docs/classic/api/merchant/ManageRecurringPaymentsProfileStatus_API_Operation_NVP/
 	$post_data = array(
 		'METHOD' => 'ManageRecurringPaymentsProfileStatus',
 		'PROFILEID' => $profile_id,
