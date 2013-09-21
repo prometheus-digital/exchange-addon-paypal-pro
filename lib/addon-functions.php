@@ -397,10 +397,6 @@ function it_exchange_paypal_pro_addon_do_payment( $it_exchange_customer, $transa
 
 	$post_data = apply_filters( 'it_exchange_paypal_pro_post_data', $post_data, $transaction_object, $it_exchange_customer );
 
-	ob_start();
-	var_dump( $post_data );
-	error_log( ob_get_clean() );
-
 	$args = array(
 		'method' => 'POST',
 		'body' => $post_data,
@@ -422,10 +418,6 @@ function it_exchange_paypal_pro_addon_do_payment( $it_exchange_customer, $transa
 	}
 
 	parse_str( $body, $api_response );
-
-	ob_start();
-	var_dump( $api_response );
-	error_log( ob_get_clean() );
 
 	$status = strtolower( $api_response[ 'ACK' ] );
 
@@ -538,10 +530,6 @@ function it_exchange_paypal_pro_addon_update_profile_status( $profile_id, $actio
 
 	$post_data = apply_filters( 'it_exchange_paypal_pro_update_profile_status_post_data', $post_data, $profile_id );
 
-	ob_start();
-	var_dump( $post_data );
-	error_log( ob_get_clean() );
-
 	$args = array(
 		'method' => 'POST',
 		'body' => $post_data,
@@ -563,10 +551,6 @@ function it_exchange_paypal_pro_addon_update_profile_status( $profile_id, $actio
 	}
 
 	parse_str( $body, $api_response );
-
-	ob_start();
-	var_dump( $api_response );
-	error_log( ob_get_clean() );
 
 	$status = strtolower( $api_response[ 'ACK' ] );
 
