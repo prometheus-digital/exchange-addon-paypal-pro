@@ -86,8 +86,10 @@ function it_exchange_paypal_pro_addon_update_transaction_status( $paypal_pro_id,
     $transactions = it_exchange_paypal_pro_addon_get_transaction_id( $paypal_pro_id );
     foreach( $transactions as $transaction ) { //really only one
         $current_status = it_exchange_get_transaction_status( $transaction );
+
         if ( $new_status !== $current_status )
             it_exchange_update_transaction_status( $transaction, $new_status );
+
 		return true;
     }
 	return false;
@@ -599,7 +601,7 @@ function it_exchange_paypal_pro_addon_update_profile_status( $profile_id, $actio
 				}
 			}
 
-			throw new Exception( sprintf( __( 'Error(s) with Payment processing: %s', 'LION' ), '<ul><li>' . implode( '</li><li>', $messages ) . '</li></ul>' ) );
+			throw new Exception( sprintf( __( 'Error(s) with Payment Profile Update: %s', 'LION' ), '<ul><li>' . implode( '</li><li>', $messages ) . '</li></ul>' ) );
 
 			break;
 	}

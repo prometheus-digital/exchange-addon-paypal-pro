@@ -175,7 +175,7 @@ function it_exchange_paypal_pro_unsubscribe_action( $output, $options, $transact
 	$paypal_pro_profile_id = it_exchange_get_recurring_payments_addon_transaction_subscription_id( $transaction );
 
 	if ( !empty( $paypal_pro_profile_id ) ) {
-		$output  = '<a class="button" href="' .  add_query_arg( array( 'it-exchange-paypal_pro-nonce' => wp_create_nonce( 'paypal_pro-unsubscribe' ), 'it-exchange-paypal_pro-action' => 'unsubscribe', 'it-exchange-paypal_pro-profile-id' => $paypal_profile_id ) ) . '">';
+		$output  = '<a class="button" href="' .  add_query_arg( array( 'it-exchange-paypal_pro-nonce' => wp_create_nonce( 'paypal_pro-unsubscribe-user' ), 'it-exchange-paypal_pro-action' => 'unsubscribe-user', 'it-exchange-paypal_pro-profile-id' => $paypal_profile_id ) ) . '">';
 		$output .= $options['label'];
 		$output .= '</a>';
 	}
@@ -199,6 +199,7 @@ function it_exchange_paypal_pro_unsubscribe_action_submit() {
 
 		$settings = it_exchange_get_option( 'addon_paypal_pro' );
 		$paypal_pro_profile_id = $_GET[ 'it-exchange-paypal_pro-profile-id' ];
+		$transaction = it_exchange_get_transaction( get_post( $_GET[ 'it-exchange-paypal_pro-transaction-id' ] ) );
 
 		if ( 'unsubscribe-user' == $_GET[ 'it-exchange-paypal_pro-action' ] && !( is_admin() && current_user_can( 'administrator' ) ) ) {
 			return;
@@ -208,22 +209,26 @@ function it_exchange_paypal_pro_unsubscribe_action_submit() {
 			switch( $_GET[ 'it-exchange-paypal_pro-action' ] ) {
 
 				case 'unsubscribe':
-					it_exchange_paypal_pro_addon_update_profile_status( $paypal_pro_profile_id, 'Cancel', 'User cancelled' );
+					it_exchange_paypal_pro_addon_update_profile_status( $paypal_pro_profile_id, 'Cancel', 'Admin cancelled' );
+
+					$transaction->update_transaction_meta( 'subscriber_status', 'cancelled' );
+					$transaction->update_transaction_meta( 'subscriber_status_user', get_current_user_id() );
+					$transaction->update_transaction_meta( 'subscriber_status_date', date_i18n( 'm/d/Y' ) );
 
 					break;
 
 				case 'unsubscribe-user':
-					it_exchange_paypal_pro_addon_update_profile_status( $paypal_pro_profile_id, 'Cancel', 'Admin cancelled' );
+					it_exchange_paypal_pro_addon_update_profile_status( $paypal_pro_profile_id, 'Cancel', 'User cancelled' );
+
+					$transaction->update_transaction_meta( 'subscriber_status', 'cancelled' );
+					$transaction->update_transaction_meta( 'subscriber_status_user', get_current_user_id() );
+					$transaction->update_transaction_meta( 'subscriber_status_date', date_i18n( 'm/d/Y' ) );
 
 					break;
 
 			}
 
-			if ( isset( $_GET[ 'it-exchange-paypal_pro-transaction-id' ] ) ) {
-				$transaction = it_exchange_get_transaction( get_post( $_GET[ 'it-exchange-paypal_pro-transaction-id' ] ) );
-
-				it_exchange_recurring_payments_addon_update_transaction_subscription_id( $transaction, '' );
-			}
+			it_exchange_recurring_payments_addon_update_transaction_subscription_id( $transaction, '' );
 		}
 		catch( Exception $e ) {
 			it_exchange_add_message( 'error', $e->getMessage() );
@@ -250,14 +255,14 @@ function it_exchange_paypal_pro_after_payment_details_cancel_url( $transaction =
 	$cart_object = get_post_meta( $transaction->ID, '_it_exchange_cart_object', true );
 	foreach ( $cart_object->products as $product ) {
 		$autorenews = $transaction->get_transaction_meta( 'subscription_autorenew_' . $product['product_id'], true );
+
 		if ( $autorenews ) {
 			$paypal_pro_profile_id = it_exchange_get_recurring_payments_addon_transaction_subscription_id( $transaction );
 
-			if ( empty( $paypal_pro_profile_id ) ) {
-				continue;
-			}
-
 			$status = $transaction->get_transaction_meta( 'subscriber_status', true );
+			$status_user = $transaction->get_transaction_meta( 'subscriber_status_user', true );
+			$status_date = $transaction->get_transaction_meta( 'subscriber_status_date', true );
+
 			switch( $status ) {
 
 				case 'deactivated':
@@ -265,12 +270,32 @@ function it_exchange_paypal_pro_after_payment_details_cancel_url( $transaction =
 					break;
 
 				case 'cancelled':
-					$output = __( 'Recurring payment has been cancelled', 'LION' );
+					$by = '';
+
+					if ( !empty( $status_user ) ) {
+						$status_user = get_userdata( $status_user );
+
+						if ( !empty( $status_user ) ) {
+							$by = sprintf( __( 'by %s', 'LION' ), $status_user->user_login );
+						}
+					}
+
+					if ( !empty( $status_date ) ) {
+						$output = sprintf( __( 'Recurring payment was cancelled %s on %s', 'LION' ), $by, $status_date );
+					}
+					else {
+						$output = sprintf( __( 'Recurring payment has been cancelled %s', 'LION' ), $by );
+					}
 					break;
 
 				case 'active':
 				default:
-					$output  = '<a href="' .  add_query_arg( array( 'it-exchange-paypal_pro-nonce' => wp_create_nonce( 'paypal_pro-unsubscribe-user' ), 'it-exchange-paypal_pro-action' => 'unsubscribe-user', 'it-exchange-paypal_pro-profile-id' => $paypal_pro_profile_id, 'it-exchange-paypal_pro-transaction-id' => $transaction->ID ) ) . '">' . __( 'Cancel Recurring Payment', 'LION' ) . '</a>';
+					if ( empty( $paypal_pro_profile_id ) ) {
+						$output = __( 'Recurring Profile not found', 'LION' );
+					}
+					else {
+						$output  = '<a href="' .  add_query_arg( array( 'it-exchange-paypal_pro-nonce' => wp_create_nonce( 'paypal_pro-unsubscribe' ), 'it-exchange-paypal_pro-action' => 'unsubscribe', 'it-exchange-paypal_pro-profile-id' => $paypal_pro_profile_id, 'it-exchange-paypal_pro-transaction-id' => $transaction->ID ) ) . '">' . __( 'Cancel Recurring Payment', 'LION' ) . '</a>';
+					}
 					break;
 			}
 			?>
@@ -284,5 +309,4 @@ function it_exchange_paypal_pro_after_payment_details_cancel_url( $transaction =
 		}
 	}
 }
-add_action( 'it_exchange_after_payment_details', 'it_exchange_paypal_pro_after_payment_details_cancel_url' );
 add_action( 'it_exchange_after_payment_details_cancel_url_for_paypal_pro', 'it_exchange_paypal_pro_after_payment_details_cancel_url' );
