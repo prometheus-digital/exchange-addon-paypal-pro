@@ -98,8 +98,13 @@ function it_exchange_paypal_pro_addon_make_payment_button( $options ) {
 
     if ( 0 >= it_exchange_get_cart_total( false ) )
         return '';
+		
+	$paypal_settings  = it_exchange_get_option( 'addon_paypal_pro' );
 
-    return it_exchange_generate_purchase_dialog( 'paypal_pro' );
+	$args = array(
+		'purchase-label' => $paypal_settings['paypal_pro_purchase_button_label'],
+	);
+    return it_exchange_generate_purchase_dialog( 'paypal_pro', $args );
 
 }
 add_filter( 'it_exchange_get_paypal_pro_make_payment_button', 'it_exchange_paypal_pro_addon_make_payment_button', 10, 2 );

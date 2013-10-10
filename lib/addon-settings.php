@@ -167,7 +167,6 @@ class IT_Exchange_PayPal_Pro_Add_On {
     */
     function print_settings_page() {
         $settings = it_exchange_get_option( 'addon_paypal_pro', true );
-		ITDebug::print_r( $settings );
         $form_values  = empty( $this->error_message ) ? $settings : ITForm::get_post_data();
         $form_options = array(
             'id'      => apply_filters( 'it_exchange_add_on_paypal_pro', 'it-exchange-add-on-paypal_pro-settings' ),
