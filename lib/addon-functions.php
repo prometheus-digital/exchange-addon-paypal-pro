@@ -258,18 +258,17 @@ function it_exchange_paypal_pro_addon_do_payment( $it_exchange_customer, $transa
 	else {
 		$expiration .= $_POST[ 'it-exchange-purchase-dialog-cc-expiration-year' ];
 	}
-
+	
 	$default_address = array(
 		'first-name'   => empty( $it_exchange_customer->data->first_name ) ? '' : $it_exchange_customer->data->first_name,
 		'last-name'    => empty( $it_exchange_customer->data->last_name ) ? '' : $it_exchange_customer->data->last_name,
 		'company-name' => '',
-		'address1' => '',
-		'address2' => '',
+		'address1'     => '',
+		'address2'     => '',
 		'city'         => '',
 		'state'        => '',
 		'zip'          => '',
 		'country'      => '',
-		'email'        => empty( $it_exchange_customer->data->user_email ) ? '' : $it_exchange_customer->data->user_email,
 		'phone'        => ''
 	);
 
@@ -296,7 +295,7 @@ function it_exchange_paypal_pro_addon_do_payment( $it_exchange_customer, $transa
 		'CVV2' => $_POST[ 'it-exchange-purchase-dialog-cc-code' ],
 
 		// Customer information
-		'EMAIL' => $billing_address[ 'email' ],
+		'EMAIL' => empty( $it_exchange_customer->data->user_email ) ? '' : $it_exchange_customer->data->user_email,
 		'PAYERID' => $it_exchange_customer->id,
 		//'PAYERSTATUS' => 'verified|unverified',
 		//'SALUTATION' => '',
@@ -414,7 +413,7 @@ function it_exchange_paypal_pro_addon_do_payment( $it_exchange_customer, $transa
 	);
 
 	$response = wp_remote_request( $url, $args );
-
+	
 	if ( is_wp_error( $response ) ) {
 		throw new Exception( __( 'Payment API unavailable, please try again.', 'LION' ) );
 	}
