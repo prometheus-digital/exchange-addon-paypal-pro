@@ -62,7 +62,7 @@ function it_exchange_save_paypal_pro_wizard_settings( $errors ) {
     $IT_Exchange_PayPal_Pro_Add_On = new IT_Exchange_PayPal_Pro_Add_On();
     return $IT_Exchange_PayPal_Pro_Add_On->save_wizard_settings();
 }
-// add_action( 'it_exchange_save_paypal_pro_wizard_settings', 'it_exchange_save_paypal_pro_wizard_settings' );
+add_action( 'it_exchange_save_paypal_pro_wizard_settings', 'it_exchange_save_paypal_pro_wizard_settings' );
 
 /**
  * Default settings for PayPal Pro
@@ -74,9 +74,9 @@ function it_exchange_save_paypal_pro_wizard_settings( $errors ) {
 */
 function it_exchange_paypal_pro_addon_default_settings( $values ) {
     $defaults = array(
-        'paypal_pro_api_username'                => '',
-        'paypal_pro_api_password'                => '',
-        'paypal_pro_api_signature'               => '',
+        'paypal_pro_api_live_username'                => '',
+        'paypal_pro_api_live_password'                => '',
+        'paypal_pro_api_live_signature'               => '',
 		'paypal_pro_sale_method'                 => 'auth_capture',
         'paypal_pro_sandbox_mode'                => false,
         'paypal_pro_purchase_button_label' => __( 'Purchase', 'LION' ),
@@ -87,38 +87,16 @@ function it_exchange_paypal_pro_addon_default_settings( $values ) {
 
 	if ( !empty( $paypal_settings ) ) {
 		if ( isset( $paypal_settings[ 'paypal-standard-secure-live-api-username' ] ) ) {
-			$defaults[ 'paypal_pro_api_username' ] = $paypal_settings[ 'paypal-standard-secure-live-api-username' ];
-			$defaults[ 'paypal_pro_api_password' ] = $paypal_settings[ 'paypal-standard-secure-live-api-password' ];
-			$defaults[ 'paypal_pro_api_signature' ] = $paypal_settings[ 'paypal-standard-secure-live-api-signature' ];
+			$defaults[ 'paypal_pro_api_live_username' ] = $paypal_settings[ 'paypal-standard-secure-live-api-username' ];
+			$defaults[ 'paypal_pro_api_live_password' ] = $paypal_settings[ 'paypal-standard-secure-live-api-password' ];
+			$defaults[ 'paypal_pro_api_live_signature' ] = $paypal_settings[ 'paypal-standard-secure-live-api-signature' ];
 		}
 
 		if ( isset( $paypal_settings[ 'paypal-standard-secure-sandbox-mode' ] ) && !empty( $paypal_settings[ 'paypal-standard-secure-sandbox-mode' ] ) ) {
 			if ( isset( $paypal_settings[ 'paypal-standard-secure-sandbox-api-username' ] ) ) {
-				$defaults[ 'paypal_pro_api_username' ] = $paypal_settings[ 'paypal-standard-secure-sandbox-api-username' ];
-				$defaults[ 'paypal_pro_api_password' ] = $paypal_settings[ 'paypal-standard-secure-sandbox-api-password' ];
-				$defaults[ 'paypal_pro_api_signature' ] = $paypal_settings[ 'paypal-standard-secure-sandbox-api-signature' ];
-				$defaults[ 'paypal_pro_sandbox_mode' ] = true;
-			}
-		}
-	}
-
-	if ( empty( $defaults[ 'paypal_pro_api_username' ] ) ) {
-		$paypal_settings = it_exchange_get_option( 'addon_paypal_standard' ); // standard
-
-		if ( !empty( $paypal_settings ) ) {
-			if ( isset( $paypal_settings[ 'paypal-standard-live-api-username' ] ) ) {
-				$defaults[ 'paypal_pro_api_username' ] = $paypal_settings[ 'paypal-standard-live-api-username' ];
-				$defaults[ 'paypal_pro_api_password' ] = $paypal_settings[ 'paypal-standard-live-api-password' ];
-				$defaults[ 'paypal_pro_api_signature' ] = $paypal_settings[ 'paypal-standard-live-api-signature' ];
-			}
-
-			if ( isset( $paypal_settings[ 'paypal-standard-sandbox-mode' ] ) && !empty( $paypal_settings[ 'paypal-standard-sandbox-mode' ] ) ) {
-				if ( isset( $paypal_settings[ 'paypal-standard-sandbox-api-username' ] ) ) {
-					$defaults[ 'paypal_pro_api_username' ] = $paypal_settings[ 'paypal-standard-sandbox-api-username' ];
-					$defaults[ 'paypal_pro_api_password' ] = $paypal_settings[ 'paypal-standard-sandbox-api-password' ];
-					$defaults[ 'paypal_pro_api_signature' ] = $paypal_settings[ 'paypal-standard-sandbox-api-signature' ];
-				}
-
+				$defaults[ 'paypal_pro_api_sandbox_username' ] = $paypal_settings[ 'paypal-standard-secure-sandbox-api-username' ];
+				$defaults[ 'paypal_pro_api_sandbox_password' ] = $paypal_settings[ 'paypal-standard-secure-sandbox-api-password' ];
+				$defaults[ 'paypal_pro_api_sandbox_signature' ] = $paypal_settings[ 'paypal-standard-secure-sandbox-api-signature' ];
 				$defaults[ 'paypal_pro_sandbox_mode' ] = true;
 			}
 		}
@@ -189,6 +167,7 @@ class IT_Exchange_PayPal_Pro_Add_On {
     */
     function print_settings_page() {
         $settings = it_exchange_get_option( 'addon_paypal_pro', true );
+		ITDebug::print_r( $settings );
         $form_values  = empty( $this->error_message ) ? $settings : ITForm::get_post_data();
         $form_options = array(
             'id'      => apply_filters( 'it_exchange_add_on_paypal_pro', 'it-exchange-add-on-paypal_pro-settings' ),
@@ -207,7 +186,7 @@ class IT_Exchange_PayPal_Pro_Add_On {
             <?php screen_icon( 'it-exchange' ); ?>
             <h2><?php _e( 'PayPal Pro Settings', 'LION' ); ?></h2>
 
-            <?php do_action( 'it_exchange_paypa-pro_settings_page_top' ); ?>
+            <?php do_action( 'it_exchange_paypal_pro_settings_page_top' ); ?>
             <?php do_action( 'it_exchange_addon_settings_page_top' ); ?>
             <?php $form->start_form( $form_options, 'it-exchange-paypal_pro-settings' ); ?>
                 <?php do_action( 'it_exchange_paypal_pro_settings_form_top' ); ?>
@@ -250,19 +229,19 @@ class IT_Exchange_PayPal_Pro_Add_On {
             </p>
             <h4><?php _e( 'Fill out your PayPal Pro API Credentials', 'LION' ); ?></h4>
             <p>
-                <label for="paypal_pro_api_username"><?php _e( 'API Username', 'LION' ); ?> <span class="tip" title="<?php _e( 'Your PayPal Pro Account Number, or SID, is found in the top-right corner of your 2CO account dashboard.', 'LION' ); ?>">i</span></label>
-                <?php $form->add_text_box( 'paypal_pro_api_username' ); ?>
+                <label for="paypal_pro_api_live_username"><?php _e( 'API Username', 'LION' ); ?> <span class="tip" title="<?php _e( 'Your PayPal Pro Account Number, or SID, is found in the top-right corner of your 2CO account dashboard.', 'LION' ); ?>">i</span></label>
+                <?php $form->add_text_box( 'paypal_pro_api_live_username' ); ?>
             </p>
             <p>
-                <label for="paypal_pro_api_password"><?php _e( 'API Password', 'LION' ); ?> <span class="tip" title="<?php _e( 'The PayPal Pro API Password is found in...', 'LION' ); ?>">i</span></label>
-                <?php $form->add_password( 'paypal_pro_api_password' ); ?>
+                <label for="paypal_pro_api_live_password"><?php _e( 'API Password', 'LION' ); ?> <span class="tip" title="<?php _e( 'The PayPal Pro API Password is found in...', 'LION' ); ?>">i</span></label>
+                <?php $form->add_password( 'paypal_pro_api_live_password' ); ?>
             </p>
             <p>
-                <label for="paypal_pro_api_signature"><?php _e( 'API Signature', 'LION' ); ?> <span class="tip" title="<?php _e( 'The PayPal Pro API Password is found in...', 'LION' ); ?>">i</span></label>
-                <?php $form->add_password( 'paypal_pro_api_signature' ); ?>
+                <label for="paypal_pro_api_live_signature"><?php _e( 'API Signature', 'LION' ); ?> <span class="tip" title="<?php _e( 'The PayPal Pro API Password is found in...', 'LION' ); ?>">i</span></label>
+                <?php $form->add_password( 'paypal_pro_api_live_signature' ); ?>
             </p>
             <p>
-                <label for="paypal_pro_sale_method"><?php _e( 'Transaction Sale Method', 'LION' ); ?></label>
+                <label for="paypal_pro_sale_method"><?php _e( 'Transaction Sale Method', 'LION' ); ?> <span class="tip" title="<?php _e( 'Need a tip here...', 'LION' ); ?>">i</span></label>
 				<?php
 					$sale_methods = array(
 						'auth_capture' => __( 'Authorize and Capture - Charge the Credit Card for the total amount', 'LION' ),
@@ -273,17 +252,30 @@ class IT_Exchange_PayPal_Pro_Add_On {
 				?>
             </p>
 
-            <h4 class="hide-if-wizard"><?php _e( 'Optional: Enable PayPal Pro Sandbox Mode', 'LION' ); ?></h4>
-            <p class="hide-if-wizard">
-                <?php $form->add_check_box( 'paypal_pro_sandbox_mode', array( 'class' => 'show-test-mode-options' ) ); ?>
-                <label for="paypal_pro_sandbox_mode"><?php _e( 'Enable PayPal Pro Sandbox Mode?', 'LION' ); ?> <span class="tip" title="<?php _e( 'Use this mode for testing your store. This mode will need to be disabled when the store is ready to process customer payments.', 'LION' ); ?>">i</span></label>
-            </p>
-
             <h4><?php _e( 'Optional: Edit Purchase Button Label', 'LION' ); ?></h4>
             <p>
                 <label for="paypal_pro_purchase_button_label"><?php _e( 'Purchase Button Label', 'LION' ); ?> <span class="tip" title="<?php _e( 'This is the text inside the button your customers will press to purchase with PayPal Pro', 'LION' ); ?>">i</span></label>
                 <?php $form->add_text_box( 'paypal_pro_purchase_button_label' ); ?>
             </p>
+
+            <h4 class="hide-if-wizard"><?php _e( 'Optional: Enable PayPal Pro Sandbox Mode', 'LION' ); ?></h4>
+            <p class="hide-if-wizard">
+                <?php $form->add_check_box( 'paypal_pro_sandbox_mode', array( 'class' => 'show-test-mode-options' ) ); ?>
+                <label for="paypal_pro_sandbox_mode"><?php _e( 'Enable PayPal Pro Sandbox Mode?', 'LION' ); ?> <span class="tip" title="<?php _e( 'Use this mode for testing your store. This mode will need to be disabled when the store is ready to process customer payments.', 'LION' ); ?>">i</span></label>
+            </p>
+			<?php $hidden_class = ( $settings['paypal_pro_sandbox_mode'] ) ? '' : 'hide-if-live-mode'; ?>
+			<p class="test-mode-options hide-if-wizard <?php echo $hidden_class; ?>">
+				<label for="paypal_pro_api_sandbox_username"><?php _e( 'PayPal Sandbox API Username', 'LION' ); ?> <span class="tip" title="<?php _e( 'View tutorial: ', 'LION' ); ?>http://ithemes.com/tutorials/creating-a-paypal-sandbox-test-account">i</span></label>
+				<?php $form->add_text_box( 'paypal_pro_api_sandbox_username' ); ?>
+			</p>
+			<p class="test-mode-options hide-if-wizard <?php echo $hidden_class; ?>">
+				<label for="paypal_pro_api_sandbox_password"><?php _e( 'PayPal Sandbox API Password', 'LION' ); ?> <span class="tip" title="<?php _e( 'View tutorial: ', 'LION' ); ?>http://ithemes.com/tutorials/creating-a-paypal-sandbox-test-account">i</span></label>
+				<?php $form->add_text_box( 'paypal_pro_api_sandbox_password' ); ?>
+			</p>
+			<p class="test-mode-options hide-if-wizard <?php echo $hidden_class; ?>">
+				<label for="paypal_pro_api_sandbox_signature"><?php _e( 'PayPal Sandbox API Signature', 'LION' ); ?> <span class="tip" title="<?php _e( 'View tutorial: ', 'LION' ); ?>http://ithemes.com/tutorials/creating-a-paypal-sandbox-test-account">i</span></label>
+				<?php $form->add_text_box( 'paypal_pro_api_sandbox_signature' ); ?>
+			</p>
         </div>
         <?php
     }
@@ -324,18 +316,23 @@ class IT_Exchange_PayPal_Pro_Add_On {
     function save_wizard_settings() {
         if ( empty( $_REQUEST['it_exchange_settings-wizard-submitted'] ) )
             return;
+			
+		it_hipchat_trace( "<pre>" . print_r( $_REQUEST, true ) . "</pre>", array( 'message_format' => 'html' ));
 
-		$defaults = it_exchange_cybersource_addon_default_settings( array() );
-
-        $paypal_pro_settings = array(
-			'paypal_pro_sale_method' => $defaults[ 'paypal_pro_sale_method' ],
-			'paypal_pro_purchase_button_label' => $defaults[ 'paypal_pro_purchase_button_label' ]
+		$paypal_pro_settings = array();
+		
+		$fields = array(
+			'paypal_pro_api_live_username',
+			'paypal_pro_api_live_password',
+			'paypal_pro_api_live_signature',
+			'paypal_pro_sale_method',
+			'paypal_pro_sandbox_mode',
+			'paypal_pro_api_sandbox_username',
+			'paypal_pro_api_sandbox_password',
+			'paypal_pro_api_sandbox_signature',
+			'paypal_pro_purchase_button_label',
 		);
-
-        // Fields to save
-        $fields = array_keys( $defaults );
-
-        $default_wizard_paypal_pro_settings = apply_filters( 'default_wizard_paypal_pro_settings', $fields );
+		$default_wizard_paypal_pro_settings = apply_filters( 'default_wizard_paypal_pro_settings', $fields );
 
         foreach( $default_wizard_paypal_pro_settings as $var ) {
             if ( isset( $_REQUEST['it_exchange_settings-' . $var] ) ) {
@@ -369,15 +366,26 @@ class IT_Exchange_PayPal_Pro_Add_On {
 
         $errors = array();
 
-		if ( empty( $values['paypal_pro_api_username'] ) )
+		if ( empty( $values['paypal_pro_api_live_username'] ) )
             $errors[] = __( 'Please include your PayPal Pro API Username', 'LION' );
 
-        if ( empty( $values['paypal_pro_api_password'] ) )
+        if ( empty( $values['paypal_pro_api_live_password'] ) )
             $errors[] = __( 'Please include your PayPal Pro API Password', 'LION' );
 
-        if ( empty( $values['paypal_pro_api_signature'] ) )
+        if ( empty( $values['paypal_pro_api_live_signature'] ) )
             $errors[] = __( 'Please include your PayPal Pro API Signature', 'LION' );
 
+		if ( !empty( $values['paypal_pro_sandbox_mode' ] ) ) {
+			if ( empty( $values['paypal_pro_api_sandbox_username'] ) )
+				$errors[] = __( 'Please include your PayPal Pro Sandbox API Username', 'LION' );
+	
+			if ( empty( $values['paypal_pro_api_sandbox_password'] ) )
+				$errors[] = __( 'Please include your PayPal Pro Sandbox API Password', 'LION' );
+	
+			if ( empty( $values['paypal_pro_api_sandbox_signature'] ) )
+				$errors[] = __( 'Please include your PayPal Pro Sandbox API Signature', 'LION' );
+		}
+		
         return $errors;
 
     }
