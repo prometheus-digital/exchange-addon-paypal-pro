@@ -74,12 +74,15 @@ add_action( 'it_exchange_save_paypal_pro_wizard_settings', 'it_exchange_save_pay
 */
 function it_exchange_paypal_pro_addon_default_settings( $values ) {
     $defaults = array(
-        'paypal_pro_api_live_username'                => '',
-        'paypal_pro_api_live_password'                => '',
-        'paypal_pro_api_live_signature'               => '',
-		'paypal_pro_sale_method'                 => 'auth_capture',
-        'paypal_pro_sandbox_mode'                => false,
+        'paypal_pro_api_live_username'     => '',
+        'paypal_pro_api_live_password'     => '',
+        'paypal_pro_api_live_signature'    => '',
+		'paypal_pro_sale_method'           => 'auth_capture',
+        'paypal_pro_sandbox_mode'          => false,
         'paypal_pro_purchase_button_label' => __( 'Purchase', 'LION' ),
+        'paypal_pro_api_sandbox_username'  => '',
+        'paypal_pro_api_sandbox_password'  => '',
+        'paypal_pro_api_sandbox_signature' => '',
     );
 
 	// Detect settings
@@ -316,8 +319,6 @@ class IT_Exchange_PayPal_Pro_Add_On {
         if ( empty( $_REQUEST['it_exchange_settings-wizard-submitted'] ) )
             return;
 			
-		it_hipchat_trace( "<pre>" . print_r( $_REQUEST, true ) . "</pre>", array( 'message_format' => 'html' ));
-
 		$paypal_pro_settings = array();
 		
 		$fields = array(
