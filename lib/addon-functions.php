@@ -164,10 +164,16 @@ function it_exchange_paypal_pro_addon_do_payment( $it_exchange_customer, $transa
 		$transaction_object->ID = 0;
 	}
 
-	$url = 'https://api-3t.paypal.com/nvp';
-
 	if ( $settings[ 'paypal_pro_sandbox_mode' ] ) {
 		$url = 'https://api-3t.sandbox.paypal.com/nvp';
+		$ppp_api_user = $settings['paypal_pro_api_sandbox_username'];
+		$ppp_api_pass = $settings['paypal_pro_api_sandbox_password'];
+		$ppp_api_sig = $settings['paypal_pro_api_sandbox_signature'];
+	} else {
+		$url = 'https://api-3t.paypal.com/nvp';	
+		$ppp_api_user = $settings['paypal_pro_api_live_username'];
+		$ppp_api_pass = $settings['paypal_pro_api_live_password'];
+		$ppp_api_sig = $settings['paypal_pro_api_live_signature'];
 	}
 
 	$paymentaction = 'Sale';
@@ -252,18 +258,17 @@ function it_exchange_paypal_pro_addon_do_payment( $it_exchange_customer, $transa
 	else {
 		$expiration .= $_POST[ 'it-exchange-purchase-dialog-cc-expiration-year' ];
 	}
-
+	
 	$default_address = array(
 		'first-name'   => empty( $it_exchange_customer->data->first_name ) ? '' : $it_exchange_customer->data->first_name,
 		'last-name'    => empty( $it_exchange_customer->data->last_name ) ? '' : $it_exchange_customer->data->last_name,
 		'company-name' => '',
-		'address1' => '',
-		'address2' => '',
+		'address1'     => '',
+		'address2'     => '',
 		'city'         => '',
 		'state'        => '',
 		'zip'          => '',
 		'country'      => '',
-		'email'        => empty( $it_exchange_customer->data->user_email ) ? '' : $it_exchange_customer->data->user_email,
 		'phone'        => ''
 	);
 
@@ -290,7 +295,7 @@ function it_exchange_paypal_pro_addon_do_payment( $it_exchange_customer, $transa
 		'CVV2' => $_POST[ 'it-exchange-purchase-dialog-cc-code' ],
 
 		// Customer information
-		'EMAIL' => $billing_address[ 'email' ],
+		'EMAIL' => empty( $it_exchange_customer->data->user_email ) ? '' : $it_exchange_customer->data->user_email,
 		'PAYERID' => $it_exchange_customer->id,
 		//'PAYERSTATUS' => 'verified|unverified',
 		//'SALUTATION' => '',
@@ -320,9 +325,9 @@ function it_exchange_paypal_pro_addon_do_payment( $it_exchange_customer, $transa
 		'METHOD' => $method,
 		'PAYMENTACTION' => $paymentaction, // Authorize|Sale
 		'RETURNFMFDETAILS' => 0, // 0|1
-		'USER' => $settings[ 'paypal_pro_api_username' ],
-		'PWD' => $settings[ 'paypal_pro_api_password' ],
-		'SIGNATURE' => $settings[ 'paypal_pro_api_signature' ],
+		'USER' => $ppp_api_user,
+		'PWD' => $ppp_api_pass,
+		'SIGNATURE' => $ppp_api_sig,
 		'NOTIFYURL' => get_site_url() . '/?' . it_exchange_get_webhook( 'paypal_pro' ) . '=1',
 
 		// Additional info
@@ -398,7 +403,7 @@ function it_exchange_paypal_pro_addon_do_payment( $it_exchange_customer, $transa
 	}
 
 	$post_data = apply_filters( 'it_exchange_paypal_pro_post_data', $post_data, $transaction_object, $it_exchange_customer );
-
+	
 	$args = array(
 		'method' => 'POST',
 		'body' => $post_data,
@@ -408,7 +413,7 @@ function it_exchange_paypal_pro_addon_do_payment( $it_exchange_customer, $transa
 	);
 
 	$response = wp_remote_request( $url, $args );
-
+	
 	if ( is_wp_error( $response ) ) {
 		throw new Exception( __( 'Payment API unavailable, please try again.', 'LION' ) );
 	}
@@ -506,10 +511,16 @@ function it_exchange_paypal_pro_addon_update_profile_status( $profile_id, $actio
 
 	$settings = it_exchange_get_option( 'addon_paypal_pro' );
 
-	$url = 'https://api-3t.paypal.com/nvp';
-
 	if ( $settings[ 'paypal_pro_sandbox_mode' ] ) {
 		$url = 'https://api-3t.sandbox.paypal.com/nvp';
+		$ppp_api_user = $settings['paypal_pro_api_sandbox_username'];
+		$ppp_api_pass = $settings['paypal_pro_api_sandbox_password'];
+		$ppp_api_sig = $settings['paypal_pro_api_sandbox_signature'];
+	} else {
+		$url = 'https://api-3t.paypal.com/nvp';
+		$ppp_api_user = $settings['paypal_pro_api_live_username'];
+		$ppp_api_pass = $settings['paypal_pro_api_live_password'];
+		$ppp_api_sig = $settings['paypal_pro_api_live_signature'];
 	}
 
 	// Hello future self...
