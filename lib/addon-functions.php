@@ -166,14 +166,14 @@ function it_exchange_paypal_pro_addon_do_payment( $it_exchange_customer, $transa
 
 	if ( $settings[ 'paypal_pro_sandbox_mode' ] ) {
 		$url = 'https://api-3t.sandbox.paypal.com/nvp';
-		$ppp_api_user = $settings['paypal_pro_api_live_username'];
-		$ppp_api_pass = $settings['paypal_pro_api_live_password'];
-		$ppp_api_sig = $settings['paypal_pro_api_live_signature'];
-	} else {
-		$url = 'https://api-3t.paypal.com/nvp';
 		$ppp_api_user = $settings['paypal_pro_api_sandbox_username'];
 		$ppp_api_pass = $settings['paypal_pro_api_sandbox_password'];
 		$ppp_api_sig = $settings['paypal_pro_api_sandbox_signature'];
+	} else {
+		$url = 'https://api-3t.paypal.com/nvp';	
+		$ppp_api_user = $settings['paypal_pro_api_live_username'];
+		$ppp_api_pass = $settings['paypal_pro_api_live_password'];
+		$ppp_api_sig = $settings['paypal_pro_api_live_signature'];
 	}
 
 	$paymentaction = 'Sale';
@@ -513,14 +513,14 @@ function it_exchange_paypal_pro_addon_update_profile_status( $profile_id, $actio
 
 	if ( $settings[ 'paypal_pro_sandbox_mode' ] ) {
 		$url = 'https://api-3t.sandbox.paypal.com/nvp';
-		$ppp_api_user = $settings['paypal_pro_api_live_username'];
-		$ppp_api_pass = $settings['paypal_pro_api_live_password'];
-		$ppp_api_sig = $settings['paypal_pro_api_live_signature'];
-	} else {
-		$url = 'https://api-3t.paypal.com/nvp';
 		$ppp_api_user = $settings['paypal_pro_api_sandbox_username'];
 		$ppp_api_pass = $settings['paypal_pro_api_sandbox_password'];
 		$ppp_api_sig = $settings['paypal_pro_api_sandbox_signature'];
+	} else {
+		$url = 'https://api-3t.paypal.com/nvp';
+		$ppp_api_user = $settings['paypal_pro_api_live_username'];
+		$ppp_api_pass = $settings['paypal_pro_api_live_password'];
+		$ppp_api_sig = $settings['paypal_pro_api_live_signature'];
 	}
 
 	// Hello future self...
