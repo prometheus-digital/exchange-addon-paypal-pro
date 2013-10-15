@@ -286,7 +286,7 @@ function it_exchange_paypal_pro_addon_do_payment( $it_exchange_customer, $transa
 		'AMT' => $total,
 		'CURRENCYCODE' => $transaction_object->currency,
 		'DESC' => $transaction_object->description,
-		'INVNUM' => $transaction_object->ID,
+		'INVNUM' => $transaction_object->ID . '|' . time(),
 
 		// Credit Card information
 		'CREDITCARDTYPE' => $card_type,
