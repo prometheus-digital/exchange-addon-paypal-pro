@@ -532,9 +532,9 @@ function it_exchange_paypal_pro_addon_update_profile_status( $profile_id, $actio
 		'NOTE' => $note,
 
 		// API info
-		'USER' => $settings[ 'paypal_pro_api_username' ],
-		'PWD' => $settings[ 'paypal_pro_api_password' ],
-		'SIGNATURE' => $settings[ 'paypal_pro_api_signature' ],
+		'USER' => $ppp_api_user,
+		'PWD' => $ppp_api_pass,
+		'SIGNATURE' => $ppp_api_sig,
 
 		// Additional info
 		'IPADDRESS' => $_SERVER[ 'REMOTE_ADDR' ],
