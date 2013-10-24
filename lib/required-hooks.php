@@ -180,7 +180,7 @@ function it_exchange_paypal_pro_unsubscribe_action( $output, $options, $transact
 	$paypal_pro_profile_id = it_exchange_get_recurring_payments_addon_transaction_subscription_id( $transaction );
 
 	if ( !empty( $paypal_pro_profile_id ) ) {
-		$output  = '<a class="button" href="' .  add_query_arg( array( 'it-exchange-paypal_pro-nonce' => wp_create_nonce( 'paypal_pro-unsubscribe-user' ), 'it-exchange-paypal_pro-action' => 'unsubscribe-user', 'it-exchange-paypal_pro-profile-id' => $paypal_profile_id ) ) . '">';
+		$output  = '<a class="button" href="' .  add_query_arg( array( 'it-exchange-paypal_pro-nonce' => wp_create_nonce( 'paypal_pro-unsubscribe-user' ), 'it-exchange-paypal_pro-action' => 'unsubscribe-user', 'it-exchange-paypal_pro-profile-id' => $paypal_pro_profile_id, 'it-exchange-paypal_pro-transaction-id' => $transaction->ID ) ) . '">';
 		$output .= $options['label'];
 		$output .= '</a>';
 	}
@@ -205,11 +205,11 @@ function it_exchange_paypal_pro_unsubscribe_action_submit() {
 		$settings = it_exchange_get_option( 'addon_paypal_pro' );
 		$paypal_pro_profile_id = $_GET[ 'it-exchange-paypal_pro-profile-id' ];
 		$transaction = it_exchange_get_transaction( get_post( $_GET[ 'it-exchange-paypal_pro-transaction-id' ] ) );
-
-		if ( 'unsubscribe-user' == $_GET[ 'it-exchange-paypal_pro-action' ] && !( is_admin() && current_user_can( 'administrator' ) ) ) {
+		
+		if ( 'unsubscribe-user' == $_GET[ 'it-exchange-paypal_pro-action' ] && is_admin() && !current_user_can( 'administrator' ) ) {
 			return;
 		}
-
+		
 		try {
 			switch( $_GET[ 'it-exchange-paypal_pro-action' ] ) {
 
