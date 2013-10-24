@@ -57,7 +57,7 @@ function it_exchange_paypal_pro_addon_set_customer_id( $customer_id, $paypal_pro
 }
 
 /**
- * Grab a transaction from the PayPal Pro transaction ID
+ * Add the stripe customer's subscription ID as user meta on a WP user
  *
  * @since 1.0.0
  *
@@ -80,15 +80,19 @@ function it_exchange_paypal_pro_addon_get_transaction_id( $paypal_pro_id ) {
  *
  * @param integer $paypal_pro_id id of PayPal Pro transaction
  * @param string $new_status new status
- * @return void
+ * @return bool
 */
 function it_exchange_paypal_pro_addon_update_transaction_status( $paypal_pro_id, $new_status ) {
     $transactions = it_exchange_paypal_pro_addon_get_transaction_id( $paypal_pro_id );
     foreach( $transactions as $transaction ) { //really only one
         $current_status = it_exchange_get_transaction_status( $transaction );
+
         if ( $new_status !== $current_status )
             it_exchange_update_transaction_status( $transaction, $new_status );
+
+		return true;
     }
+	return false;
 }
 
 /**
@@ -156,23 +160,68 @@ function it_exchange_paypal_pro_addon_do_payment( $it_exchange_customer, $transa
 	$general_settings = it_exchange_get_option( 'settings_general' );
 	$settings = it_exchange_get_option( 'addon_paypal_pro' );
 
-	$charge = array(
-		'customer' => $it_exchange_customer->id,
-		'amount' => number_format( $transaction_object->total, 2, '', '' ),
-		'currency' => $general_settings[ 'default-currency' ],
-		'description' => $transaction_object->description,
-	);
-
-	$url = 'https://api-3t.paypal.com/nvp';
+	if ( !isset( $transaction_object->ID ) ) {
+		$transaction_object->ID = 0;
+	}
 
 	if ( $settings[ 'paypal_pro_sandbox_mode' ] ) {
 		$url = 'https://api-3t.sandbox.paypal.com/nvp';
+		$ppp_api_user = $settings['paypal_pro_api_sandbox_username'];
+		$ppp_api_pass = $settings['paypal_pro_api_sandbox_password'];
+		$ppp_api_sig = $settings['paypal_pro_api_sandbox_signature'];
+	} else {
+		$url = 'https://api-3t.paypal.com/nvp';	
+		$ppp_api_user = $settings['paypal_pro_api_live_username'];
+		$ppp_api_pass = $settings['paypal_pro_api_live_password'];
+		$ppp_api_sig = $settings['paypal_pro_api_live_signature'];
 	}
 
 	$paymentaction = 'Sale';
 
 	if ( 'auth' == $settings[ 'paypal_pro_sale_method' ] ) {
 		$paymentaction = 'Authorization';
+	}
+
+	// Hello future self...
+	// https://developer.paypal.com/webapps/developer/docs/classic/api/merchant/DoDirectPayment_API_Operation_NVP/
+	$method = 'DoDirectPayment';
+
+	if ( 1 === it_exchange_get_cart_products_count() ) {
+		$cart = it_exchange_get_cart_products();
+
+		$recurring_products = array();
+
+		foreach( $cart as $product ) {
+			if ( it_exchange_product_supports_feature( $product['product_id'], 'recurring-payments', array( 'setting' => 'auto-renew' ) ) ) {
+				if ( it_exchange_product_has_feature( $product['product_id'], 'recurring-payments', array( 'setting' => 'auto-renew' ) ) ) {
+					$time = it_exchange_get_product_feature( $product['product_id'], 'recurring-payments', array( 'setting' => 'time' ) );
+
+					switch( $time ) {
+
+						case 'yearly':
+							$unit = 'Year';
+							break;
+
+						case 'monthly':
+						default:
+							$unit = 'Month';
+							break;
+
+					}
+
+					$recurring_products[ $product[ 'product_id' ] ] = array(
+						'product' => $product,
+						'unit' => apply_filters( 'it_exchange_paypal_pro_subscription_unit', $unit, $time, $product, $transaction_object, $it_exchange_customer ),
+						'duration' => apply_filters( 'it_exchange_paypal_pro_subscription_duration', 1, $time, $product, $transaction_object, $it_exchange_customer ),
+						'cycles' => apply_filters( 'it_exchange_paypal_pro_subscription_cycles', 0, $time, $product, $transaction_object, $it_exchange_customer )
+					);
+
+					// Hello future self...
+					// https://developer.paypal.com/webapps/developer/docs/classic/api/merchant/CreateRecurringPaymentsProfile_API_Operation_NVP/
+					$method = 'CreateRecurringPaymentsProfile';
+				}
+			}
+		}
 	}
 
 	$total = $transaction_object->total;
@@ -209,18 +258,17 @@ function it_exchange_paypal_pro_addon_do_payment( $it_exchange_customer, $transa
 	else {
 		$expiration .= $_POST[ 'it-exchange-purchase-dialog-cc-expiration-year' ];
 	}
-
+	
 	$default_address = array(
 		'first-name'   => empty( $it_exchange_customer->data->first_name ) ? '' : $it_exchange_customer->data->first_name,
 		'last-name'    => empty( $it_exchange_customer->data->last_name ) ? '' : $it_exchange_customer->data->last_name,
 		'company-name' => '',
-		'address1' => '',
-		'address2' => '',
+		'address1'     => '',
+		'address2'     => '',
 		'city'         => '',
 		'state'        => '',
 		'zip'          => '',
 		'country'      => '',
-		'email'        => empty( $it_exchange_customer->data->user_email ) ? '' : $it_exchange_customer->data->user_email,
 		'phone'        => ''
 	);
 
@@ -237,6 +285,8 @@ function it_exchange_paypal_pro_addon_do_payment( $it_exchange_customer, $transa
 		// Base Cart
 		'AMT' => $total,
 		'CURRENCYCODE' => $transaction_object->currency,
+		'DESC' => $transaction_object->description,
+		'INVNUM' => $transaction_object->ID . '|' . time(),
 
 		// Credit Card information
 		'CREDITCARDTYPE' => $card_type,
@@ -245,11 +295,17 @@ function it_exchange_paypal_pro_addon_do_payment( $it_exchange_customer, $transa
 		'CVV2' => $_POST[ 'it-exchange-purchase-dialog-cc-code' ],
 
 		// Customer information
-		'EMAIL' => $billing_address[ 'email' ],
+		'EMAIL' => empty( $it_exchange_customer->data->user_email ) ? '' : $it_exchange_customer->data->user_email,
+		'PAYERID' => $it_exchange_customer->id,
+		//'PAYERSTATUS' => 'verified|unverified',
+		//'SALUTATION' => '',
 		'FIRSTNAME' => $billing_address[ 'first-name' ],
+		//'MIDDLENAME' => '',
 		'LASTNAME' => $billing_address[ 'last-name' ],
-		'STREET' => $billing_address[ 'address-1' ],
-		'STREET2' => $billing_address[ 'address-2' ],
+		//'SUFFIX' => '',
+		//'BUSINESS' => '',
+		'STREET' => $billing_address[ 'address1' ],
+		'STREET2' => $billing_address[ 'address2' ],
 		'CITY' => $billing_address[ 'city' ],
 		'STATE' => $billing_address[ 'state' ],
 		'ZIP' => $billing_address[ 'zip' ],
@@ -257,23 +313,26 @@ function it_exchange_paypal_pro_addon_do_payment( $it_exchange_customer, $transa
 
 		// Shipping information
 		'SHIPTONAME' => $shipping_address[ 'first-name' ] . ' ' . $shipping_address[ 'last-name' ],
-		'SHIPTOSTREET' => $shipping_address[ 'address-1' ],
-		'SHIPTOSTREET2' => $shipping_address[ 'address-2' ],
+		'SHIPTOSTREET' => $shipping_address[ 'address1' ],
+		'SHIPTOSTREET2' => $shipping_address[ 'address2' ],
 		'SHIPTOCITY' => $shipping_address[ 'city' ],
 		'SHIPTOSTATE' => $shipping_address[ 'state' ],
 		'SHIPTOZIP' => $shipping_address[ 'zip' ],
 		'SHIPTOCOUNTRYCODE' => $shipping_address[ 'country' ],
+		//'SHIPTOPHONENUM' => '',
 
 		// API settings
-		'METHOD' => 'DoDirectPayment',
-		'PAYMENTACTION' => $paymentaction,
-		'USER' => $settings[ 'paypal_pro_api_username' ],
-		'PWD' => $settings[ 'paypal_pro_api_password' ],
-		'SIGNATURE' => $settings[ 'paypal_pro_api_signature' ],
+		'METHOD' => $method,
+		'PAYMENTACTION' => $paymentaction, // Authorize|Sale
+		'RETURNFMFDETAILS' => 0, // 0|1
+		'USER' => $ppp_api_user,
+		'PWD' => $ppp_api_pass,
+		'SIGNATURE' => $ppp_api_sig,
+		'NOTIFYURL' => get_site_url() . '/?' . it_exchange_get_webhook( 'paypal_pro' ) . '=1',
 
 		// Additional info
 		'IPADDRESS' => $_SERVER[ 'REMOTE_ADDR' ],
-		'VERSION' => '59.0',
+		'VERSION' => '59.0'
 	);
 
 	$item_count = 0;
@@ -285,7 +344,34 @@ function it_exchange_paypal_pro_addon_do_payment( $it_exchange_customer, $transa
 	$post_data[ 'L_QTY' . $item_count ] = 1;
 
 	// @todo Handle taxes?
-	// $post_data[ 'L_TAXAMT' . $item_count ] = 0;*/
+	//$post_data[ 'L_TAXAMT' . $item_count ] = 0;*/
+
+	$product_prefix = '';
+
+	if ( 'CreateRecurringPaymentsProfile' == $method ) {
+		$product_prefix = 'PAYMENTREQUEST_0_';
+
+		$recurring_product = current( $recurring_products );
+
+		$post_data[ 'SUBSCRIBERNAME' ] = $post_data[ 'FIRSTNAME' ] . ' ' . $post_data[ 'LASTNAME' ];
+		$post_data[ 'PROFILESTARTDATE' ] = date_i18n( 'Y-m-d\Th:i:s\Z');
+		$post_data[ 'PROFILEREFERENCE' ] = $transaction_object->ID;
+
+		$post_data[ 'BILLINGPERIOD' ] = $recurring_product[ 'unit' ];
+		$post_data[ 'BILLINGFREQUENCY' ] = $recurring_product[ 'duration' ];
+		$post_data[ 'TOTALBILLINGCYCLES' ] = $recurring_product[ 'cycles' ];
+
+		$post_data[ 'MAXFAILEDPAYMENTS' ] = apply_filters( 'it_exchange_paypal_pro_subscription_max_failed_payments', 0, $transaction_object, $it_exchange_customer );;
+
+		//$post_data[ 'INITAMT' ] = ''; // Initial non-recurring payment
+		//$post_data[ 'FAILEDINITAMTACTION' ] = apply_filters( 'it_exchange_paypal_pro_subscription_failed_action', 'CancelOnFailure', $transaction_object, $it_exchange_customer );
+
+		//$post_data[ 'TRIALBILLINGPERIOD' ] = 'Month';
+		//$post_data[ 'TRIALBILLINGFREQUENCY' ] = '1'; // Once monthly
+		//$post_data[ 'TRIALTOTALBILLINGCYCLES' ] = '3'; // First three months
+		//$post_data[ 'TRIALAMT' ] = '123.00';
+
+	}
 
 	foreach ( $transaction_object->products as $product ) {
 		$price = $product[ 'product_subtotal' ]; // base price * quantity, w/ any changes by plugins
@@ -296,16 +382,166 @@ function it_exchange_paypal_pro_addon_do_payment( $it_exchange_customer, $transa
 
 		$price = it_exchange_format_price( $price, false );
 
-		$post_data[ 'L_NUMBER' . $item_count ] = $item_count;
-		$post_data[ 'L_NAME' . $item_count ] = $product[ 'product_name' ];
-		$post_data[ 'L_AMT' . $item_count ] = $price;
-		$post_data[ 'L_QTY' . $item_count ] = $product[ 'count' ];
+		$post_data[ 'L_' . $product_prefix . 'NUMBER' . $item_count ] = $product[ 'product_id' ];
+		$post_data[ 'L_' . $product_prefix . 'NAME' . $item_count ] = $product[ 'product_name' ];
+		$post_data[ 'L_' . $product_prefix . 'AMT' . $item_count ] = $price;
+		$post_data[ 'L_' . $product_prefix . 'QTY' . $item_count ] = $product[ 'count' ];
+		//$post_data[ 'L_' . $product_prefix . 'ITEMCATEGORY' . $item_count ] = 'Physical';
+
+		if ( it_exchange_product_supports_feature( $product['product_id'], 'downloads', array( 'setting' => 'digital-downloads-product-type' ) ) ) {
+			if ( it_exchange_product_has_feature( $product['product_id'], 'downloads', array( 'setting' => 'digital-downloads-product-type' ) ) ) {
+				$post_data[ 'L_' . $product_prefix . 'ITEMCATEGORY' . $item_count ] = 'Digital';
+			}
+		}
+
+		//$post_data[ 'L_' . $product_prefix . 'DESC' . $item_count ] = '';
 
 		// @todo Handle taxes?
-		// $post_data[ 'L_TAXAMT' . $item_count ] = 0;
+		//$post_data[ 'L_' . $product_prefix . 'TAXAMT' . $item_count ] = 0;
 
 		$item_count++;
 	}
+
+	$post_data = apply_filters( 'it_exchange_paypal_pro_post_data', $post_data, $transaction_object, $it_exchange_customer );
+	
+	$args = array(
+		'method' => 'POST',
+		'body' => $post_data,
+		'user-agent' => 'iThemes Exchange',
+		'timeout' => 90,
+		'sslverify' => false
+	);
+
+	$response = wp_remote_request( $url, $args );
+	
+	if ( is_wp_error( $response ) ) {
+		throw new Exception( __( 'Payment API unavailable, please try again.', 'LION' ) );
+	}
+
+	$body = wp_remote_retrieve_body( $response );
+
+	if ( empty( $body ) ) {
+		throw new Exception( __( 'Payment API error, please try again.', 'LION' ) );
+	}
+
+	parse_str( $body, $api_response );
+
+	$status = strtolower( $api_response[ 'ACK' ] );
+
+	switch ( $status ) {
+		case 'success':
+		case 'successwithwarning':
+			$status = 'success';
+
+			break;
+
+		case 'failure':
+		default:
+			$messages = array();
+
+			$message_count = 0;
+
+			while ( isset( $api_response[ 'L_LONGMESSAGE' . $message_count ] ) ) {
+				$message = $api_response[ 'L_SHORTMESSAGE' . $message_count ] . ': ' . $api_response[ 'L_LONGMESSAGE' . $message_count ] . ' (Error Code #' . $api_response[ 'L_ERRORCODE' . $message_count ] . ')';
+
+				$messages[] = $message;
+
+				$message_count++;
+			}
+
+			if ( empty( $messages ) ) {
+				$message_count = 0;
+
+				while ( isset( $api_response[ 'L_SHORTMESSAGE' . $message_count ] ) ) {
+					$message = $api_response[ 'L_SHORTMESSAGE' . $message_count ] . ' (Error Code #' . $api_response[ 'L_ERRORCODE' . $message_count ] . ')';
+
+					$messages[] = $message;
+
+					$message_count++;
+				}
+			}
+
+			if ( empty( $messages ) ) {
+				$message_count = 0;
+
+				while ( isset( $api_response[ 'L_SEVERITYCODE' . $message_count ] ) ) {
+					$message = $api_response[ 'L_SEVERITYCODE' . $message_count ] . ' (Error Code #' . $api_response[ 'L_ERRORCODE' . $message_count ] . ')';
+
+					$messages[] = $message;
+
+					$message_count++;
+				}
+			}
+
+			throw new Exception( sprintf( __( 'Error(s) with Payment processing: %s', 'LION' ), '<ul><li>' . implode( '</li><li>', $messages ) . '</li></ul>' ) );
+
+			break;
+	}
+
+	$id = 0;
+
+	if ( isset( $api_response[ 'TRANSACTIONID' ] ) ) {
+		$id = $api_response[ 'TRANSACTIONID' ];
+	}
+	elseif ( isset( $api_response[ 'PROFILEID' ] ) ) {
+		$id = $api_response[ 'PROFILEID' ];
+
+		if ( 'PendingProfile' == $api_response[ 'PROFILESTATUS' ] ) {
+			$status = 'pending';
+		}
+
+		// Set subscriber ID with transaction ID
+		add_filter( 'it_exchange_get_transaction_confirmation_url', 'it_exchange_paypal_pro_get_transaction_confirmation_url', 10, 2 );
+	}
+
+	return array( 'id' => $id, 'status' => $status );
+}
+
+/**
+ * Update profile status for a subscription
+ *
+ * @param string $profile_id
+ * @param string $action
+ * @param string $note
+ *
+ * @return array
+ * @throws Exception
+ */
+function it_exchange_paypal_pro_addon_update_profile_status( $profile_id, $action = 'Cancel', $note = '' ) {
+
+	$settings = it_exchange_get_option( 'addon_paypal_pro' );
+
+	if ( $settings[ 'paypal_pro_sandbox_mode' ] ) {
+		$url = 'https://api-3t.sandbox.paypal.com/nvp';
+		$ppp_api_user = $settings['paypal_pro_api_sandbox_username'];
+		$ppp_api_pass = $settings['paypal_pro_api_sandbox_password'];
+		$ppp_api_sig = $settings['paypal_pro_api_sandbox_signature'];
+	} else {
+		$url = 'https://api-3t.paypal.com/nvp';
+		$ppp_api_user = $settings['paypal_pro_api_live_username'];
+		$ppp_api_pass = $settings['paypal_pro_api_live_password'];
+		$ppp_api_sig = $settings['paypal_pro_api_live_signature'];
+	}
+
+	// Hello future self...
+	// https://developer.paypal.com/webapps/developer/docs/classic/api/merchant/ManageRecurringPaymentsProfileStatus_API_Operation_NVP/
+	$post_data = array(
+		'METHOD' => 'ManageRecurringPaymentsProfileStatus',
+		'PROFILEID' => $profile_id,
+		'ACTION' => $action,
+		'NOTE' => $note,
+
+		// API info
+		'USER' => $settings[ 'paypal_pro_api_username' ],
+		'PWD' => $settings[ 'paypal_pro_api_password' ],
+		'SIGNATURE' => $settings[ 'paypal_pro_api_signature' ],
+
+		// Additional info
+		'IPADDRESS' => $_SERVER[ 'REMOTE_ADDR' ],
+		'VERSION' => '59.0'
+	);
+
+	$post_data = apply_filters( 'it_exchange_paypal_pro_update_profile_status_post_data', $post_data, $profile_id );
 
 	$args = array(
 		'method' => 'POST',
@@ -318,13 +554,13 @@ function it_exchange_paypal_pro_addon_do_payment( $it_exchange_customer, $transa
 	$response = wp_remote_request( $url, $args );
 
 	if ( is_wp_error( $response ) ) {
-		// @todo Show error message
+		throw new Exception( __( 'Subscription API unavailable, please try again.', 'LION' ) );
 	}
 
 	$body = wp_remote_retrieve_body( $response );
 
 	if ( empty( $body ) ) {
-		// @todo Show error message
+		throw new Exception( __( 'Subscription API error, please try again.', 'LION' ) );
 	}
 
 	parse_str( $body, $api_response );
@@ -334,7 +570,7 @@ function it_exchange_paypal_pro_addon_do_payment( $it_exchange_customer, $transa
 	switch ( $status ) {
 		case 'success':
 		case 'successwithwarning':
-			// @todo Set message
+			// all good
 
 			break;
 
@@ -345,7 +581,9 @@ function it_exchange_paypal_pro_addon_do_payment( $it_exchange_customer, $transa
 			$message_count = 0;
 
 			while ( isset( $api_response[ 'L_LONGMESSAGE' . $message_count ] ) ) {
-				$messages[] = $api_response[ 'L_SHORTMESSAGE' . $message_count ] . ': ' . $api_response[ 'L_LONGMESSAGE' . $message_count ] . ' (Error Code #' . $api_response[ 'L_ERRORCODE' . $message_count ] . ')';
+				$message = $api_response[ 'L_SHORTMESSAGE' . $message_count ] . ': ' . $api_response[ 'L_LONGMESSAGE' . $message_count ] . ' (Error Code #' . $api_response[ 'L_ERRORCODE' . $message_count ] . ')';
+
+				$messages[] = $message;
 
 				$message_count++;
 			}
@@ -354,7 +592,9 @@ function it_exchange_paypal_pro_addon_do_payment( $it_exchange_customer, $transa
 				$message_count = 0;
 
 				while ( isset( $api_response[ 'L_SHORTMESSAGE' . $message_count ] ) ) {
-					$messages[] = $api_response[ 'L_SHORTMESSAGE' . $message_count ] . ' (Error Code #' . $api_response[ 'L_ERRORCODE' . $message_count ] . ')';
+					$message = $api_response[ 'L_SHORTMESSAGE' . $message_count ] . ' (Error Code #' . $api_response[ 'L_ERRORCODE' . $message_count ] . ')';
+
+					$messages[] = $message;
 
 					$message_count++;
 				}
@@ -364,21 +604,20 @@ function it_exchange_paypal_pro_addon_do_payment( $it_exchange_customer, $transa
 				$message_count = 0;
 
 				while ( isset( $api_response[ 'L_SEVERITYCODE' . $message_count ] ) ) {
-					$messages[] = $api_response[ 'L_SEVERITYCODE' . $message_count ] . ' (Error Code #' . $api_response[ 'L_ERRORCODE' . $message_count ] . ')';
+					$message = $api_response[ 'L_SEVERITYCODE' . $message_count ] . ' (Error Code #' . $api_response[ 'L_ERRORCODE' . $message_count ] . ')';
+
+					$messages[] = $message;
 
 					$message_count++;
 				}
 			}
 
-			// @todo Set message
-			// 'Correlation ID: ' . $api_response[ 'CORRELATIONID' ]
-
-			// @todo Return errors
+			throw new Exception( sprintf( __( 'Error(s) with Payment Profile Update: %s', 'LION' ), '<ul><li>' . implode( '</li><li>', $messages ) . '</li></ul>' ) );
 
 			break;
 	}
 
-	return array( 'id' => $api_response[ 'TRANSACTIONID' ], 'status' => 'success' );
+	return true;
 }
 
 /**
