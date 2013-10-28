@@ -231,19 +231,19 @@ class IT_Exchange_PayPal_Pro_Add_On {
             </p>
             <h4><?php _e( 'Fill out your PayPal Pro API Credentials', 'LION' ); ?></h4>
             <p>
-                <label for="paypal_pro_api_live_username"><?php _e( 'API Username', 'LION' ); ?> <span class="tip" title="<?php _e( 'Your PayPal Pro Account Number, or SID, is found in the top-right corner of your 2CO account dashboard.', 'LION' ); ?>">i</span></label>
+                <label for="paypal_pro_api_live_username"><?php _e( 'API Username', 'LION' ); ?> <span class="tip" title="<?php _e( 'Your PayPal Pro API Username can be found in PayPal under Profile -› API Access (or Request API Credentials).', 'LION' ); ?>">i</span></label>
                 <?php $form->add_text_box( 'paypal_pro_api_live_username' ); ?>
             </p>
             <p>
-                <label for="paypal_pro_api_live_password"><?php _e( 'API Password', 'LION' ); ?> <span class="tip" title="<?php _e( 'The PayPal Pro API Password is found in...', 'LION' ); ?>">i</span></label>
+                <label for="paypal_pro_api_live_password"><?php _e( 'API Password', 'LION' ); ?> <span class="tip" title="<?php _e( 'The PayPal Pro API Password can be found in PayPal under Profile -› API Access (or Request API Credentials).', 'LION' ); ?>">i</span></label>
                 <?php $form->add_password( 'paypal_pro_api_live_password' ); ?>
             </p>
             <p>
-                <label for="paypal_pro_api_live_signature"><?php _e( 'API Signature', 'LION' ); ?> <span class="tip" title="<?php _e( 'The PayPal Pro API Password is found in...', 'LION' ); ?>">i</span></label>
+                <label for="paypal_pro_api_live_signature"><?php _e( 'API Signature', 'LION' ); ?> <span class="tip" title="<?php _e( 'The PayPal Pro API Signature can be found in PayPal under Profile -› API Access (or Request API Credentials).', 'LION' ); ?>">i</span></label>
                 <?php $form->add_password( 'paypal_pro_api_live_signature' ); ?>
             </p>
             <p>
-                <label for="paypal_pro_sale_method"><?php _e( 'Transaction Sale Method', 'LION' ); ?> <span class="tip" title="<?php _e( 'Need a tip here...', 'LION' ); ?>">i</span></label>
+                <label for="paypal_pro_sale_method"><?php _e( 'Transaction Sale Method', 'LION' ); ?> <span class="tip" title="<?php _e( 'Authorization & Capture, or Auth/Capture, allows you to authorize the availability of funds for a transaction but delay the capture of funds until a later time. This is often useful for merchants who have a delayed order fulfillment process.', 'LION' ); ?>">i</span></label>
 				<?php
 					$sale_methods = array(
 						'auth_capture' => __( 'Authorize and Capture - Charge the Credit Card for the total amount', 'LION' ),
@@ -266,15 +266,15 @@ class IT_Exchange_PayPal_Pro_Add_On {
             </p>
 			<?php $hidden_class = ( $settings['paypal_pro_sandbox_mode'] ) ? '' : 'hide-if-live-mode'; ?>
 			<p class="test-mode-options hide-if-wizard <?php echo $hidden_class; ?>">
-				<label for="paypal_pro_api_sandbox_username"><?php _e( 'PayPal Sandbox API Username', 'LION' ); ?> <span class="tip" title="<?php _e( 'View tutorial: ', 'LION' ); ?>http://ithemes.com/tutorials/creating-a-paypal-sandbox-test-account">i</span></label>
+				<label for="paypal_pro_api_sandbox_username"><?php _e( 'PayPal Sandbox API Username', 'LION' ); ?> <span class="tip" title="<?php _e( 'Your PayPal Pro API Username can be found in PayPal Sandbox under Profile -› API Access (or Request API Credentials). ', 'LION' ); ?>http://ithemes.com/tutorials/creating-a-paypal-sandbox-test-account">i</span></label>
 				<?php $form->add_text_box( 'paypal_pro_api_sandbox_username' ); ?>
 			</p>
 			<p class="test-mode-options hide-if-wizard <?php echo $hidden_class; ?>">
-				<label for="paypal_pro_api_sandbox_password"><?php _e( 'PayPal Sandbox API Password', 'LION' ); ?> <span class="tip" title="<?php _e( 'View tutorial: ', 'LION' ); ?>http://ithemes.com/tutorials/creating-a-paypal-sandbox-test-account">i</span></label>
+				<label for="paypal_pro_api_sandbox_password"><?php _e( 'PayPal Sandbox API Password', 'LION' ); ?> <span class="tip" title="<?php _e( 'Your PayPal Pro API Password can be found in PayPal Sandbox under Profile -› API Access (or Request API Credentials).', 'LION' ); ?>http://ithemes.com/tutorials/creating-a-paypal-sandbox-test-account">i</span></label>
 				<?php $form->add_text_box( 'paypal_pro_api_sandbox_password' ); ?>
 			</p>
 			<p class="test-mode-options hide-if-wizard <?php echo $hidden_class; ?>">
-				<label for="paypal_pro_api_sandbox_signature"><?php _e( 'PayPal Sandbox API Signature', 'LION' ); ?> <span class="tip" title="<?php _e( 'View tutorial: ', 'LION' ); ?>http://ithemes.com/tutorials/creating-a-paypal-sandbox-test-account">i</span></label>
+				<label for="paypal_pro_api_sandbox_signature"><?php _e( 'PayPal Sandbox API Signature', 'LION' ); ?> <span class="tip" title="<?php _e( 'Your PayPal Pro API Signeatur can be found in PayPal Sandbox under Profile -› API Access (or Request API Credentials).', 'LION' ); ?>http://ithemes.com/tutorials/creating-a-paypal-sandbox-test-account">i</span></label>
 				<?php $form->add_text_box( 'paypal_pro_api_sandbox_signature' ); ?>
 			</p>
         </div>
