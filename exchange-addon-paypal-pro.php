@@ -1,7 +1,7 @@
 <?php
 /*
  * Plugin Name: iThemes Exchange - PayPal Pro Add-on
- * Version: 1.0.3
+ * Version: 1.0.4
  * Description: Adds the ability for users to checkout with PayPal Pro.
  * Plugin URI: http://ithemes.com/exchange/paypal-pro/
  * Author: WebDevStudios
