@@ -180,7 +180,7 @@ function it_exchange_paypal_pro_unsubscribe_action( $output, $options, $transact
 	$paypal_pro_profile_id = it_exchange_get_recurring_payments_addon_transaction_subscription_id( $transaction );
 
 	if ( !empty( $paypal_pro_profile_id ) ) {
-		$output  = '<a class="button" href="' .  add_query_arg( array( 'it-exchange-paypal_pro-nonce' => wp_create_nonce( 'paypal_pro-unsubscribe-user' ), 'it-exchange-paypal_pro-action' => 'unsubscribe-user', 'it-exchange-paypal_pro-profile-id' => $paypal_pro_profile_id, 'it-exchange-paypal_pro-transaction-id' => $transaction->ID ) ) . '">';
+		$output  = '<a class="button" href="' .  esc_url( add_query_arg( array( 'it-exchange-paypal_pro-nonce' => wp_create_nonce( 'paypal_pro-unsubscribe-user' ), 'it-exchange-paypal_pro-action' => 'unsubscribe-user', 'it-exchange-paypal_pro-profile-id' => $paypal_pro_profile_id, 'it-exchange-paypal_pro-transaction-id' => $transaction->ID ) ) ) . '">';
 		$output .= $options['label'];
 		$output .= '</a>';
 	}
@@ -299,7 +299,7 @@ function it_exchange_paypal_pro_after_payment_details_cancel_url( $transaction =
 						$output = __( 'Recurring Profile not found', 'LION' );
 					}
 					else {
-						$output  = '<a href="' .  add_query_arg( array( 'it-exchange-paypal_pro-nonce' => wp_create_nonce( 'paypal_pro-unsubscribe' ), 'it-exchange-paypal_pro-action' => 'unsubscribe', 'it-exchange-paypal_pro-profile-id' => $paypal_pro_profile_id, 'it-exchange-paypal_pro-transaction-id' => $transaction->ID ) ) . '">' . __( 'Cancel Recurring Payment', 'LION' ) . '</a>';
+						$output  = '<a href="' . esc_url( add_query_arg( array( 'it-exchange-paypal_pro-nonce' => wp_create_nonce( 'paypal_pro-unsubscribe' ), 'it-exchange-paypal_pro-action' => 'unsubscribe', 'it-exchange-paypal_pro-profile-id' => $paypal_pro_profile_id, 'it-exchange-paypal_pro-transaction-id' => $transaction->ID ) ) ) . '">' . __( 'Cancel Recurring Payment', 'LION' ) . '</a>';
 					}
 					break;
 			}
