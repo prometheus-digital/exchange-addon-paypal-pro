@@ -405,11 +405,10 @@ function it_exchange_paypal_pro_addon_do_payment( $it_exchange_customer, $transa
 		'method' => 'POST',
 		'body' => $post_data,
 		'user-agent' => 'iThemes Exchange',
-		'timeout' => 90,
-		'sslverify' => false
 	);
 
 	$response = wp_remote_request( $url, $args );
+
 	
 	if ( is_wp_error( $response ) ) {
 		throw new Exception( __( 'Payment API unavailable, please try again.', 'LION' ) );
