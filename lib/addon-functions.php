@@ -234,30 +234,27 @@ function it_exchange_paypal_pro_addon_do_payment( $it_exchange_customer, $transa
 	$total_pre_discount = $total + $discount;
 	$taxes = '0.00';
 
-	$card_type = it_exchange_paypal_pro_addon_get_card_type( $_POST[ 'it-exchange-purchase-dialog-cc-number' ] );
+	$purchase_dialog = it_exchange_get_purchase_dialog_submitted_values( 'paypal_pro' );
+
+	$card_type = it_exchange_paypal_pro_addon_get_card_type( $purchase_dialog['number'] );
 
 	if ( empty( $card_type ) ) {
 		throw new Exception( 'Invalid Credit Card' );
 	}
 
 	$card_type = $card_type[ 'name' ];
+	$month = (int) $purchase_dialog['expiration-month'];
+	$year = (int) $purchase_dialog['expiration-year'];
 
-
-	$_POST[ 'it-exchange-purchase-dialog-cc-expiration-month' ] = (int) $_POST[ 'it-exchange-purchase-dialog-cc-expiration-month' ];
-	$_POST[ 'it-exchange-purchase-dialog-cc-expiration-year' ] = (int) $_POST[ 'it-exchange-purchase-dialog-cc-expiration-year' ];
-
-	$expiration = $_POST[ 'it-exchange-purchase-dialog-cc-expiration-month' ];
-
-	if ( $expiration < 10 ) {
-		$expiration = '0' . $expiration;
+	if ( $month < 10 ) {
+		$month = '0' . $month;
 	}
 
-	if ( $_POST[ 'it-exchange-purchase-dialog-cc-expiration-year' ] < 100 ) {
-		$expiration .= '20' . $_POST[ 'it-exchange-purchase-dialog-cc-expiration-year' ];
+	if ( $year < 100 ) {
+		$year = '20' . $year;
 	}
-	else {
-		$expiration .= $_POST[ 'it-exchange-purchase-dialog-cc-expiration-year' ];
-	}
+
+	$expiration = $month . $year;
 	
 	$default_address = array(
 		'first-name'   => empty( $it_exchange_customer->data->first_name ) ? '' : $it_exchange_customer->data->first_name,
@@ -290,9 +287,9 @@ function it_exchange_paypal_pro_addon_do_payment( $it_exchange_customer, $transa
 
 		// Credit Card information
 		'CREDITCARDTYPE' => $card_type,
-		'ACCT' => $_POST[ 'it-exchange-purchase-dialog-cc-number' ],
+		'ACCT' => $purchase_dialog['number'],
 		'EXPDATE' => $expiration,
-		'CVV2' => $_POST[ 'it-exchange-purchase-dialog-cc-code' ],
+		'CVV2' =>$purchase_dialog['code'],
 
 		// Customer information
 		'EMAIL' => empty( $it_exchange_customer->data->user_email ) ? '' : $it_exchange_customer->data->user_email,
@@ -408,11 +405,10 @@ function it_exchange_paypal_pro_addon_do_payment( $it_exchange_customer, $transa
 		'method' => 'POST',
 		'body' => $post_data,
 		'user-agent' => 'iThemes Exchange',
-		'timeout' => 90,
-		'sslverify' => false
 	);
 
 	$response = wp_remote_request( $url, $args );
+
 	
 	if ( is_wp_error( $response ) ) {
 		throw new Exception( __( 'Payment API unavailable, please try again.', 'LION' ) );
