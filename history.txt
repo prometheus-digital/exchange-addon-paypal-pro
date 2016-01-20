@@ -22,3 +22,5 @@
 	Adding warning when deactivating payment gateway
 1.2.1 - 2015-07-14 - Packaging Bot (lib/updater)
 	Enhancement: Updated link to iThemes support.
+1.2.2 - 2016-01-20 - Timothy B. Jacobs, Elise Alley
+	Fix: Use purchase dialog API, fixing errors during checkout
