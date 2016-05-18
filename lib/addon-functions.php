@@ -407,12 +407,13 @@ function it_exchange_paypal_pro_addon_do_payment( $it_exchange_customer, $transa
 	$post_data = apply_filters( 'it_exchange_paypal_pro_post_data', $post_data, $transaction_object, $it_exchange_customer );
 	
 	$args = array(
-		'method' => 'POST',
 		'body' => $post_data,
 		'user-agent' => 'iThemes Exchange',
+		'httpversion' => '1.1',
+		'timeout' => 10
 	);
 
-	$response = wp_remote_request( $url, $args );
+	$response = wp_remote_post( $url, $args );
 
 	
 	if ( is_wp_error( $response ) ) {
@@ -549,7 +550,8 @@ function it_exchange_paypal_pro_addon_update_profile_status( $profile_id, $actio
 		'body' => $post_data,
 		'user-agent' => 'iThemes Exchange',
 		'timeout' => 90,
-		'sslverify' => false
+		'sslverify' => false,
+		'httpversion' => '1.1',
 	);
 
 	$response = wp_remote_request( $url, $args );
