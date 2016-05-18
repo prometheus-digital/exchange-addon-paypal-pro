@@ -271,6 +271,11 @@ function it_exchange_paypal_pro_addon_do_payment( $it_exchange_customer, $transa
 
 	$billing_address = $shipping_address = it_exchange_get_customer_billing_address( $it_exchange_customer->id );
 
+	if ( ! is_array( $billing_address ) ) {
+		$billing_address  = array();
+		$shipping_address = array();
+	}
+
 	if ( function_exists( 'it_exchange_get_customer_shipping_address' ) ) {
 		$shipping_address = it_exchange_get_customer_shipping_address( $it_exchange_customer->id );
 	}
