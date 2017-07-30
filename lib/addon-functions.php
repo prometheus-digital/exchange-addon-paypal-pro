@@ -6,7 +6,7 @@
 */
 
 /**
- * Adds actions to the plugins page for the iThemes Exchange PayPal Pro plugin
+ * Adds actions to the plugins page for the ExchangeWP PayPal Pro plugin
  *
  * @since 1.0.0
  *
@@ -170,7 +170,7 @@ function it_exchange_paypal_pro_addon_do_payment( $it_exchange_customer, $transa
 		$ppp_api_pass = $settings['paypal_pro_api_sandbox_password'];
 		$ppp_api_sig = $settings['paypal_pro_api_sandbox_signature'];
 	} else {
-		$url = 'https://api-3t.paypal.com/nvp';	
+		$url = 'https://api-3t.paypal.com/nvp';
 		$ppp_api_user = $settings['paypal_pro_api_live_username'];
 		$ppp_api_pass = $settings['paypal_pro_api_live_password'];
 		$ppp_api_sig = $settings['paypal_pro_api_live_signature'];
@@ -255,7 +255,7 @@ function it_exchange_paypal_pro_addon_do_payment( $it_exchange_customer, $transa
 	}
 
 	$expiration = $month . $year;
-	
+
 	$default_address = array(
 		'first-name'   => empty( $it_exchange_customer->data->first_name ) ? '' : $it_exchange_customer->data->first_name,
 		'last-name'    => empty( $it_exchange_customer->data->last_name ) ? '' : $it_exchange_customer->data->last_name,
@@ -400,16 +400,16 @@ function it_exchange_paypal_pro_addon_do_payment( $it_exchange_customer, $transa
 	}
 
 	$post_data = apply_filters( 'it_exchange_paypal_pro_post_data', $post_data, $transaction_object, $it_exchange_customer );
-	
+
 	$args = array(
 		'method' => 'POST',
 		'body' => $post_data,
-		'user-agent' => 'iThemes Exchange',
+		'user-agent' => 'ExchangeWP',
 	);
 
 	$response = wp_remote_request( $url, $args );
 
-	
+
 	if ( is_wp_error( $response ) ) {
 		throw new Exception( __( 'Payment API unavailable, please try again.', 'LION' ) );
 	}
@@ -542,7 +542,7 @@ function it_exchange_paypal_pro_addon_update_profile_status( $profile_id, $actio
 	$args = array(
 		'method' => 'POST',
 		'body' => $post_data,
-		'user-agent' => 'iThemes Exchange',
+		'user-agent' => 'ExchangeWP',
 		'timeout' => 90,
 		'sslverify' => false
 	);

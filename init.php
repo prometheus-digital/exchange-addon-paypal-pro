@@ -1,6 +1,6 @@
 <?php
 /**
- * iThemes Exchange PayPal Pro Add-on
+ * ExchangeWP PayPal Pro Add-on
  * @package IT_Exchange_Addon_PayPal_Pro
  * @since 1.0.0
 */

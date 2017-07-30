@@ -1,12 +1,12 @@
 <?php
 /*
- * Plugin Name: iThemes Exchange - PayPal Pro Add-on
- * Version: 1.2.2
+ * Plugin Name: ExchangeWP - PayPal Pro Add-on
+ * Version: 1.2.3
  * Description: Adds the ability for users to checkout with PayPal Pro.
- * Plugin URI: http://ithemes.com/exchange/paypal-pro/
- * Author: WebDevStudios
- * Author URI: http://webdevstudios.com
- * iThemes Package: exchange-addon-paypal-pro
+ * Plugin URI: https://exchangewp.com/downloads/paypal-pro/
+ * Author: ExchangeWP
+ * Author URI: https://exchangewp.com
+ * ExchangeWP Package: exchange-addon-paypal-pro
 
  * Installation:
  * 1. Download and unzip the latest release zip file.
@@ -25,8 +25,8 @@ function it_exchange_register_paypal_pro_addon() {
 	$options = array(
 		'name'              => __( 'PayPal Pro', 'LION' ),
 		'description'       => __( 'Process transactions via PayPal Pro.', 'LION' ),
-		'author'            => 'WebDevStudios',
-		'author_url'        => 'http://webdevstudios.com',
+		'author'            => 'ExchangeWP',
+		'author_url'        => 'https://exchangewp.com',
 		'icon'              => ITUtility::get_url_from_file( dirname( __FILE__ ) . '/lib/images/paypal50px.png' ),
 		'wizard-icon'       => ITUtility::get_url_from_file( dirname( __FILE__ ) . '/lib/images/wizard-paypal-pro.png' ),
 		'file'              => dirname( __FILE__ ) . '/init.php',
@@ -67,7 +67,7 @@ function ithemes_exchange_addon_paypal_pro_updater_register( $updater ) {
 	    $updater->register( 'exchange-addon-paypal-pro', __FILE__ );
 }
 add_action( 'ithemes_updater_register', 'ithemes_exchange_addon_paypal_pro_updater_register' );
-require( dirname( __FILE__ ) . '/lib/updater/load.php' );
+// require( dirname( __FILE__ ) . '/lib/updater/load.php' );
 
 function ithemes_exchange_paypal_pro_deactivate() {
 	if ( empty( $_GET['remove-gateway'] ) || 'yes' !== $_GET['remove-gateway'] ) {
@@ -83,3 +83,33 @@ function ithemes_exchange_paypal_pro_deactivate() {
 	}
 }
 register_deactivation_hook( __FILE__, 'ithemes_exchange_paypal_pro_deactivate' );
+
+if ( ! class_exists( 'EDD_SL_Plugin_Updater' ) )  {
+	require_once 'EDD_SL_Plugin_Updater.php';
+}
+
+function exchange_paypal_pro_plugin_updater() {
+
+	// retrieve our license key from the DB
+	// this is going to have to be pulled from a seralized array to get the actual key.
+	// $license_key = trim( get_option( 'exchange_paypal_pro_license_key' ) );
+	$exchangewp_paypal_pro_options = get_option( 'it-storage-exchange_addon_paypal_pro' );
+	$license_key = $exchangewp_paypal_pro_options['paypal_pro_license'];
+
+	// setup the updater
+	$edd_updater = new EDD_SL_Plugin_Updater( 'https://exchangewp.com', __FILE__, array(
+			'version' 		=> '1.2.3', 				// current version number
+			'license' 		=> $license_key, 		// license key (used get_option above to retrieve from DB)
+			'item_name' 	=> 'paypal-pro', 	  // name of this plugin
+			'author' 	  	=> 'ExchangeWP',    // author of this plugin
+			'url'       	=> home_url(),
+			'wp_override' => true,
+			'beta'		  	=> false
+		)
+	);
+	// var_dump($edd_updater);
+	// die();
+
+}
+
+add_action( 'admin_init', 'exchange_paypal_pro_plugin_updater', 0 );
