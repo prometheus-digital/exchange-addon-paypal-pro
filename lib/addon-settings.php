@@ -418,17 +418,12 @@ class IT_Exchange_PayPal_Pro_Add_On {
 
       		// Check if anything passed on a message constituting a failure
       		if ( ! empty( $message ) ) {
-      			$base_url = admin_url( 'admin.php?page=' . 'paypal_pro-license' );
-      			$redirect = add_query_arg( array( 'sl_activation' => 'false', 'message' => urlencode( $message ) ), $base_url );
-
-      			wp_redirect( $redirect );
-      			exit();
+      			return;
       		}
 
       		//$license_data->license will be either "valid" or "invalid"
       		update_option( 'exchange_paypal_pro_license_status', $license_data->license );
-      		// wp_redirect( admin_url( 'admin.php?page=' . 'paypal_pro-license' ) );
-      		exit();
+      		return;
       	}
 
         // deactivate here
@@ -465,11 +460,7 @@ class IT_Exchange_PayPal_Pro_Add_On {
       				$message = __( 'An error occurred, please try again.' );
       			}
 
-      			// $base_url = admin_url( 'admin.php?page=' . 'paypal_pro-license' );
-      			// $redirect = add_query_arg( array( 'sl_activation' => 'false', 'message' => urlencode( $message ) ), $base_url );
-
-      			wp_redirect( 'admin.php?page=paypal_pro-license' );
-      			exit();
+      			return;
       		}
 
       		// decode the license data
@@ -479,8 +470,7 @@ class IT_Exchange_PayPal_Pro_Add_On {
       			delete_option( 'exchange_paypal_pro_license_status' );
       		}
 
-      		// wp_redirect( admin_url( 'admin.php?page=' . 'paypal_pro-license' ) );
-      		exit();
+      		return;
 
       	}
 
