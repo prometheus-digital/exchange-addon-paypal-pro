@@ -98,7 +98,7 @@ function it_exchange_paypal_pro_addon_make_payment_button( $options ) {
 
     if ( 0 >= it_exchange_get_cart_total( false ) )
         return '';
-		
+
 	$paypal_settings  = it_exchange_get_option( 'addon_paypal_pro' );
 
 	$args = array(
@@ -205,11 +205,11 @@ function it_exchange_paypal_pro_unsubscribe_action_submit() {
 		$settings = it_exchange_get_option( 'addon_paypal_pro' );
 		$paypal_pro_profile_id = $_GET[ 'it-exchange-paypal_pro-profile-id' ];
 		$transaction = it_exchange_get_transaction( get_post( $_GET[ 'it-exchange-paypal_pro-transaction-id' ] ) );
-		
+
 		if ( 'unsubscribe-user' == $_GET[ 'it-exchange-paypal_pro-action' ] && is_admin() && !current_user_can( 'administrator' ) ) {
 			return;
 		}
-		
+
 		try {
 			switch( $_GET[ 'it-exchange-paypal_pro-action' ] ) {
 
@@ -249,7 +249,7 @@ add_action( 'init', 'it_exchange_paypal_pro_unsubscribe_action_submit' );
  *
  * @since 1.3.1
  *
- * @param object $transaction iThemes Transaction object
+ * @param object $transaction ExchangeWP Transaction object
  * @return void
 */
 function it_exchange_paypal_pro_after_payment_details_cancel_url( $transaction = null ) {

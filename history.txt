@@ -24,3 +24,6 @@
 	Enhancement: Updated link to iThemes support.
 1.2.2 - 2016-01-20 - Timothy B. Jacobs, Elise Alley
 	Fix: Use purchase dialog API, fixing errors during checkout
+1.2.3 - 2017-08-01 - AJ Morris
+	Rebranded.
+	License System and License form field on settings page.
