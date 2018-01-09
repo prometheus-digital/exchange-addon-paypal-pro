@@ -1,7 +1,7 @@
 <?php
 /*
  * Plugin Name: ExchangeWP - PayPal Pro Add-on
- * Version: 0.0.1
+ * Version: 1.2.4
  * Description: Adds the ability for users to checkout with PayPal Pro.
  * Plugin URI: https://exchangewp.com/downloads/paypal-pro/
  * Author: ExchangeWP
@@ -87,7 +87,7 @@ function exchange_paypal_pro_plugin_updater() {
 		$license = $license_key['exchange_license'];
 
 		$edd_updater = new EDD_SL_Plugin_Updater( 'https://exchangewp.com', __FILE__, array(
-				'version' 		=> '0.0.1', 				// current version number
+				'version' 		=> '1.2.4', 				// current version number
 				'license' 		=> $license, 				// license key (used get_option above to retrieve from DB)
 				'item_id' 		=> 402,					 	  // name of this plugin
 				'author' 	  	=> 'ExchangeWP',    // author of this plugin
